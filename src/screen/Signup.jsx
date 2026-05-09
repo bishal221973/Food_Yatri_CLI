@@ -26,6 +26,7 @@ const Signup = () => {
     citizenship_back: null,
     licence: null,
   })
+  const [errors, setErrors] = useState({})
 
   const riderTypes = [
     { name: 'Walker', icon: '🚶' },
@@ -106,7 +107,43 @@ const Signup = () => {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [phone, setPhone] = useState('')
+
+  const validateForm = () => {
+  const newErrors = {}
+
+  // TEXT FIELDS
+  if (!name.trim()) newErrors.name = 'Full name is required'
+  if (!address.trim()) newErrors.address = 'Address is required'
+  if (!phone.trim()) newErrors.phone = 'Contact number is required'
+
+  // RIDER TYPE
+  if (!selectedType) newErrors.riderType = 'Rider type is required'
+
+  // DOCUMENT VALIDATION
+  if (isSimpleRider) {
+    if (!documents.birth_certificate?.uri)
+      newErrors.birth_certificate = 'Birth certificate is required'
+
+    if (!documents.citizenship_front?.uri)
+      newErrors.citizenship_front = 'Citizenship front is required'
+
+    if (!documents.citizenship_back?.uri)
+      newErrors.citizenship_back = 'Citizenship back is required'
+  } else {
+    if (!documents.licence?.uri)
+      newErrors.licence = 'Licence is required'
+
+    if (!vehicleNo.trim())
+      newErrors.vehicle_no = 'Vehicle number is required'
+  }
+
+  setErrors(newErrors)
+
+  return Object.keys(newErrors).length === 0
+}
+
   const submitForm = async () => {
+    if (!validateForm()) return
     try {
       const formData = new FormData()
 
@@ -167,9 +204,11 @@ const Signup = () => {
         <TextInput placeholder="Full Name" placeholderTextColor="#999" style={styles.input} value={name}
           onChangeText={setName}
         />
+        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
         <TextInput placeholder="Address" placeholderTextColor="#999" style={styles.input} value={address}
           onChangeText={setAddress}
         />
+        {errors.address && <Text style={styles.errorText}>{errors.address}</Text>}
         <TextInput
           placeholder="Contact Number"
           keyboardType="number-pad"
@@ -179,6 +218,8 @@ const Signup = () => {
           onChangeText={setPhone}
 
         />
+        {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+
 
         {/* RIDER TYPE */}
         <Text style={styles.sectionTitle}>Select Rider Type</Text>
@@ -205,7 +246,7 @@ const Signup = () => {
           })}
         </View>
         {/* DOCUMENTS */}
-        <Text style={styles.sectionTitle}>Documents</Text>
+        <Text style={styles.sectionTitle}>Documents * :</Text>
 
         {isSimpleRider ? (
           <View style={styles.row}>
@@ -273,7 +314,7 @@ const Signup = () => {
         )}
 
         {/* SUBMIT */}
-        <TouchableOpacity style={styles.submitBtn}>
+        <TouchableOpacity style={styles.submitBtn} onPress={submitForm}>
           <Text style={styles.submitText}>Register Now</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -344,7 +385,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 10,
     padding: 12,
-    marginBottom: 15,
+    marginTop: 15,
   },
 
   sectionTitle: {
@@ -479,4 +520,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  errorText:{
+    color:'red',
+    fontSize:10
+  }
 })
