@@ -12,6 +12,13 @@ const Login = ({ navigation }) => {
       >
         <Text style={styles.buttonText}>Go to Signup</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Home')}
+      >
+        <Text style={styles.buttonText}>Go to Home</Text>
+      </TouchableOpacity>
     </View>
   )
 }
