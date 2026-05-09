@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet,StatusBar } from 'react-native'
 import React from 'react'
 import Login from '../screen/Login'
 import Splash from '../screen/splash'
@@ -11,8 +11,9 @@ const Stack = createNativeStackNavigator();
 
 const StackNavigation = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
+    <NavigationContainer >
+      
+      <Stack.Navigator  screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Signup" component={Signup} />
