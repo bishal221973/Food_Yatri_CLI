@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 const Signup = () => {
   const insets = useSafeAreaInsets()
@@ -101,6 +102,54 @@ const Signup = () => {
       }
     )
   }
+
+  const [name, setName] = useState('')
+  const [address, setAddress] = useState('')
+  const [phone, setPhone] = useState('')
+  const submitForm = async () => {
+    try {
+      const formData = new FormData()
+
+      // TEXT DATA
+      formData.append('name', name)
+      formData.append('address', address)
+      formData.append('phone', phone)
+      formData.append('riderType', selectedType)
+
+      // DOCUMENTS (IMAGES)
+      Object.keys(documents).forEach((key) => {
+        const file = documents[key]
+
+        if (file?.uri) {
+          formData.append(key, {
+            uri: file.uri,
+            type: file.type || 'image/jpeg',
+            name: file.fileName || `${key}.jpg`,
+          })
+        }
+      })
+
+      const response = await fetch('https://YOUR_API_URL.com/rider/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      })
+
+      const data = await response.json()
+      console.log('SERVER RESPONSE:', data)
+
+      if (response.ok) {
+        alert('Account Created Successfully!')
+      } else {
+        alert('Failed to submit')
+      }
+    } catch (error) {
+      console.log(error)
+      alert('Something went wrong')
+    }
+  }
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -111,17 +160,24 @@ const Signup = () => {
         ]}
       >
         {/* HEADER */}
-        <Text style={styles.title}>Create Rider Account</Text>
+        <Text style={styles.title}>Rider Account</Text>
         <Text style={styles.subtitle}>Join Food Yatri Rider Network</Text>
 
         {/* INPUTS */}
-        <TextInput placeholder="Full Name" placeholderTextColor="#999" style={styles.input} />
-        <TextInput placeholder="Address" placeholderTextColor="#999" style={styles.input} />
+        <TextInput placeholder="Full Name" placeholderTextColor="#999" style={styles.input} value={name}
+          onChangeText={setName}
+        />
+        <TextInput placeholder="Address" placeholderTextColor="#999" style={styles.input} value={address}
+          onChangeText={setAddress}
+        />
         <TextInput
           placeholder="Contact Number"
           keyboardType="number-pad"
           style={styles.input}
           placeholderTextColor="#999"
+          value={phone}
+          onChangeText={setPhone}
+
         />
 
         {/* RIDER TYPE */}
@@ -164,7 +220,7 @@ const Signup = () => {
                   style={styles.docImage}
                 />
               ) : (
-                <Text style={styles.docText}>Birth</Text>
+                <Text style={styles.docText}>Birth{"\n"}Certificate</Text>
               )}
             </TouchableOpacity>
 
@@ -178,7 +234,7 @@ const Signup = () => {
                   style={styles.docImage}
                 />
               ) : (
-                <Text style={styles.docText}>Front</Text>
+                <Text style={styles.docText}>Citizenship {"\n"} Front</Text>
               )}
             </TouchableOpacity>
 
@@ -192,15 +248,15 @@ const Signup = () => {
                   style={styles.docImage}
                 />
               ) : (
-                <Text style={styles.docText}>Back</Text>
+                <Text style={styles.docText}>Citizenship {"\n"}Back</Text>
               )}
             </TouchableOpacity>
 
           </View>
         ) : (
-          <View style={[styles.uploadBox,{flexDirection:'column',alignItems:'center'}]}>
+          <View style={[styles.uploadBox, { flexDirection: 'column', alignItems: 'center' }]}>
             <TouchableOpacity
-              style={[styles.docBox,{width:'50%',height:100,marginBottom:10}]}
+              style={[styles.docBox, { width: '50%', height: 100, marginBottom: 10 }]}
               onPress={() => openPickerOptions('licence')}
             >
               {documents.licence?.uri ? (
@@ -212,13 +268,13 @@ const Signup = () => {
                 <Text style={styles.docText}>Licence</Text>
               )}
             </TouchableOpacity>
-            <TextInput placeholder="Vehicle Number" placeholderTextColor="#999" style={[styles.input,{width:'100%'}]} />
+            <TextInput placeholder="Vehicle Number" placeholderTextColor="#999" style={[styles.input, { width: '100%' }]} />
           </View>
         )}
 
         {/* SUBMIT */}
         <TouchableOpacity style={styles.submitBtn}>
-          <Text style={styles.submitText}>Create Account</Text>
+          <Text style={styles.submitText}>Register Now</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -297,11 +353,11 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
 
- grid: {
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-  justifyContent: 'space-between',
-},
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
 
   typeBox: {
     width: '48%',
@@ -310,8 +366,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom:10,
-    alignItems:'center'
+    marginBottom: 10,
+    alignItems: 'center'
   },
 
   typeBoxActive: {
@@ -320,7 +376,7 @@ const styles = StyleSheet.create({
 
   icon: {
     marginRight: 8,
-    fontSize:20
+    fontSize: 20
   },
 
   typeText: {
@@ -356,6 +412,7 @@ const styles = StyleSheet.create({
   docText: {
     fontSize: 12,
     fontWeight: '600',
+    textAlign:'center'
   },
 
   uploadBox: {
@@ -365,16 +422,21 @@ const styles = StyleSheet.create({
   },
 
   submitBtn: {
-    backgroundColor: '#111',
-    padding: 15,
+    backgroundColor: 'red',
+    paddingHorizontal: 8,
+    paddingVertical:7,
     borderRadius: 10,
     marginTop: 20,
     alignItems: 'center',
+    position:'absolute',
+    right:10,
+    top:10
   },
 
   submitText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize:14
   },
 
   modalOverlay: {
