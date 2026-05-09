@@ -7,13 +7,20 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
-
+import { launchImageLibrary } from 'react-native-image-picker'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const Signup = () => {
-
+  // ✅ ALL hooks at top (IMPORTANT)
   const insets = useSafeAreaInsets()
+
   const [selectedType, setSelectedType] = useState('Walker')
+
+  const [documents, setDocuments] = useState({
+    birth_certificate: null,
+    citizenship_front: null,
+    citizenship_back: null,
+  })
 
   const riderTypes = [
     { name: 'Walker', icon: '🚶' },
@@ -25,32 +32,55 @@ const Signup = () => {
   const isSimpleRider =
     selectedType === 'Walker' || selectedType === 'Bicycler'
 
+  // ✅ Safe document picker
+  const pickDocument = (type) => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 1,
+      },
+      (response) => {
+        if (response.didCancel) return
+        if (response.errorCode) {
+          console.log(response.errorMessage)
+          return
+        }
+
+        const asset = response.assets?.[0]
+        if (!asset) return
+
+        setDocuments((prev) => ({
+          ...prev,
+          [type]: asset,
+        }))
+      }
+    )
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.container,
-          { paddingBottom: insets.bottom + 30 }
+          { paddingBottom: insets.bottom + 30 },
         ]}
       >
-
-        {/* Header */}
+        {/* HEADER */}
         <Text style={styles.title}>Create Rider Account</Text>
         <Text style={styles.subtitle}>Join Food Yatri Rider Network</Text>
 
-        {/* Inputs */}
-        <TextInput placeholder="Full Name" placeholderTextColor={'#999'} style={styles.input} />
-        <TextInput placeholder="Address" placeholderTextColor={'#999'} style={styles.input} />
+        {/* INPUTS */}
+        <TextInput placeholder="Full Name" placeholderTextColor="#999" style={styles.input} />
+        <TextInput placeholder="Address" placeholderTextColor="#999" style={styles.input} />
         <TextInput
           placeholder="Contact Number"
           keyboardType="number-pad"
           style={styles.input}
-          placeholderTextColor={'#999'}
+          placeholderTextColor="#999"
         />
 
-        {/* Rider Type */}
+        {/* RIDER TYPE */}
         <Text style={styles.sectionTitle}>Select Rider Type</Text>
 
         <View style={styles.grid}>
@@ -62,15 +92,17 @@ const Signup = () => {
                 key={index}
                 style={[
                   styles.typeBox,
-                  active && styles.typeBoxActive
+                  active && styles.typeBoxActive,
                 ]}
                 onPress={() => setSelectedType(item.name)}
               >
                 <Text style={styles.icon}>{item.icon}</Text>
-                <Text style={[
-                  styles.typeText,
-                  active && styles.typeTextActive
-                ]}>
+                <Text
+                  style={[
+                    styles.typeText,
+                    active && styles.typeTextActive,
+                  ]}
+                >
                   {item.name}
                 </Text>
               </TouchableOpacity>
@@ -78,18 +110,44 @@ const Signup = () => {
           })}
         </View>
 
-        {/* Documents */}
+        {/* DOCUMENTS */}
         <Text style={styles.sectionTitle}>Documents</Text>
 
         {isSimpleRider ? (
           <View style={styles.uploadBox}>
             <Text style={styles.uploadText}>Required Documents:</Text>
-            <Text>• Birth Certificate</Text>
-            <Text>• Citizenship Front</Text>
-            <Text>• Citizenship Back</Text>
 
-            <TouchableOpacity style={styles.uploadBtn}>
-              <Text style={styles.uploadBtnText}>Upload Documents</Text>
+            <TouchableOpacity
+              style={styles.uploadBtn}
+              onPress={() => pickDocument('birth_certificate')}
+            >
+              <Text style={styles.uploadBtnText}>
+                {documents.birth_certificate
+                  ? '✔ Birth Certificate Uploaded'
+                  : 'Upload Birth Certificate'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.uploadBtn}
+              onPress={() => pickDocument('citizenship_front')}
+            >
+              <Text style={styles.uploadBtnText}>
+                {documents.citizenship_front
+                  ? '✔ Citizenship Front Uploaded'
+                  : 'Upload Citizenship Front'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.uploadBtn}
+              onPress={() => pickDocument('citizenship_back')}
+            >
+              <Text style={styles.uploadBtnText}>
+                {documents.citizenship_back
+                  ? '✔ Citizenship Back Uploaded'
+                  : 'Upload Citizenship Back'}
+              </Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -104,21 +162,17 @@ const Signup = () => {
           </View>
         )}
 
-        {/* Submit */}
+        {/* SUBMIT */}
         <TouchableOpacity style={styles.submitBtn}>
           <Text style={styles.submitText}>Create Account</Text>
         </TouchableOpacity>
-
       </ScrollView>
-
     </SafeAreaView>
   )
 }
 
 export default Signup
-
 const styles = StyleSheet.create({
-
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
@@ -171,9 +225,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 12,
-    flexDirection:'row',
-    justifyContent:'center',
-    gap:10
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
   },
 
   typeBoxActive: {
@@ -182,7 +236,7 @@ const styles = StyleSheet.create({
 
   icon: {
     fontSize: 20,
-    marginBottom: 5,
+    marginRight: 8,
   },
 
   typeText: {
@@ -219,6 +273,7 @@ const styles = StyleSheet.create({
   uploadBtnText: {
     color: '#fff',
     fontWeight: '600',
+    textAlign: 'center',
   },
 
   submitBtn: {
@@ -234,5 +289,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-
 })
