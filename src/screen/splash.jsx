@@ -1,57 +1,59 @@
 import React, { useEffect, useRef } from 'react'
-import { View, Text, Image, StyleSheet, Animated } from 'react-native'
+import { View, Text, Image, StyleSheet, Animated, Easing } from 'react-native'
 
 const Splash = ({ navigation }) => {
 
-  const dot1 = useRef(new Animated.Value(0)).current
-  const dot2 = useRef(new Animated.Value(0)).current
-  const dot3 = useRef(new Animated.Value(0)).current
+  const dot1 = useRef(new Animated.Value(1)).current
+  const dot2 = useRef(new Animated.Value(1)).current
+  const dot3 = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
 
-    const createLoop = (dot, delay) => {
-      const animation = Animated.loop(
+    const createPulse = (anim) => {
+      return Animated.loop(
         Animated.sequence([
-          Animated.timing(dot, {
-            toValue: 1,
-            duration: 400,
-            delay,
+          Animated.timing(anim, {
+            toValue: 1.5,
+            duration: 300,
+            easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
-          Animated.timing(dot, {
-            toValue: 0,
-            duration: 400,
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 300,
+            easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
         ])
       )
-
-      animation.start()
-      return animation
     }
 
-    const anim1 = createLoop(dot1, 0)
-    const anim2 = createLoop(dot2, 200)
-    const anim3 = createLoop(dot3, 400)
+    const a1 = createPulse(dot1)
+    const a2 = createPulse(dot2)
+    const a3 = createPulse(dot3)
 
-    // Optional: auto navigate after 4s
-    // const timer = setTimeout(() => {
-    //   navigation.replace('Login')
-    // }, 4000)
+    a1.start()
+
+    setTimeout(() => a2.start(), 150)
+    setTimeout(() => a3.start(), 300)
+
+    const timer = setTimeout(() => {
+      navigation.replace('Login')
+    }, 4000)
 
     return () => {
       clearTimeout(timer)
-      anim1.stop()
-      anim2.stop()
-      anim3.stop()
+      a1.stop()
+      a2.stop()
+      a3.stop()
     }
 
-  }, [])
+  }, [navigation])
 
   return (
     <View style={styles.container}>
 
-      {/* Logo Section */}
+      {/* Logo */}
       <View style={styles.logoContainer}>
 
         <Image
@@ -61,8 +63,8 @@ const Splash = ({ navigation }) => {
         />
 
         <Text style={styles.appName}>
-          <Text style={{ color: '#1e90ff' }}>Food</Text>
-          <Text style={{ color: 'red', fontFamily: 'rider' }}> Yatri</Text>
+          <Text style={{ color: '#1E40AF' }}>Food</Text>
+          <Text style={{ color: 'red' }}> Yatri</Text>
         </Text>
 
         <Text style={styles.tagline}>Rider</Text>
@@ -72,13 +74,13 @@ const Splash = ({ navigation }) => {
       <View style={styles.loaderContainer}>
         <View style={styles.dotsRow}>
 
-          <Animated.View style={[styles.dot, { opacity: dot1 }]} />
-          <Animated.View style={[styles.dot, { opacity: dot2 }]} />
-          <Animated.View style={[styles.dot, { opacity: dot3 }]} />
+          <Animated.View style={[styles.dot, { transform: [{ scale: dot1 }] }]} />
+          <Animated.View style={[styles.dot, { transform: [{ scale: dot2 }] }]} />
+          <Animated.View style={[styles.dot, { transform: [{ scale: dot3 }] }]} />
 
         </View>
 
-        <Text style={styles.loadingText}>Loading...</Text>
+        {/* <Text style={styles.loadingText}>Loading...</Text> */}
       </View>
 
     </View>
@@ -107,15 +109,16 @@ const styles = StyleSheet.create({
   },
 
   appName: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
-    marginTop: -25,
+    marginTop: -20,
   },
 
   tagline: {
     fontSize: 18,
     marginTop: 5,
-    fontStyle: 'italic',
+    fontFamily: 'rider',
+    color: '#666',
   },
 
   loaderContainer: {
@@ -126,19 +129,21 @@ const styles = StyleSheet.create({
 
   dotsRow: {
     flexDirection: 'row',
-    marginBottom: 10,
+    alignItems: 'center',
   },
 
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#000',
-    marginHorizontal: 4,
+    width: 5,
+    height: 5,
+    borderRadius: 5,
+    backgroundColor: '#999',
+    marginHorizontal: 5,
+    marginTop:-200
   },
 
   loadingText: {
+    marginTop: 10,
     fontSize: 14,
-    color: '#555',
+    color: '#777',
   },
 })
