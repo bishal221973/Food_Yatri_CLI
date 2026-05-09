@@ -8,7 +8,7 @@ import {
   ScrollView,
   Image,
 } from 'react-native'
-import { launchImageLibrary } from 'react-native-image-picker'
+import { launchImageLibrary, launchCamera } from 'react-native-image-picker'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const Signup = () => {
@@ -23,6 +23,7 @@ const Signup = () => {
     birth_certificate: null,
     citizenship_front: null,
     citizenship_back: null,
+    licence: null,
   })
 
   const riderTypes = [
@@ -76,9 +77,30 @@ const Signup = () => {
 
   const onScan = () => {
     setModalVisible(false)
-    console.log('Open camera scanner for:', activeDocType)
+    if (activeDocType) openCamera(activeDocType)
   }
 
+  const openCamera = (type) => {
+    launchCamera(
+      {
+        mediaType: 'photo',
+        cameraType: 'back',
+        saveToPhotos: true,
+      },
+      (response) => {
+        if (response.didCancel) return
+        if (response.errorCode) return
+
+        const asset = response.assets?.[0]
+        if (!asset?.uri) return
+
+        setDocuments((prev) => ({
+          ...prev,
+          [type]: asset,
+        }))
+      }
+    )
+  }
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -119,19 +141,13 @@ const Signup = () => {
                 onPress={() => setSelectedType(item.name)}
               >
                 <Text style={styles.icon}>{item.icon}</Text>
-                <Text
-                  style={[
-                    styles.typeText,
-                    active && styles.typeTextActive,
-                  ]}
-                >
+                <Text style={[styles.typeText, active && styles.typeTextActive]}>
                   {item.name}
                 </Text>
               </TouchableOpacity>
             )
           })}
         </View>
-
         {/* DOCUMENTS */}
         <Text style={styles.sectionTitle}>Documents</Text>
 
@@ -182,10 +198,21 @@ const Signup = () => {
 
           </View>
         ) : (
-          <View style={styles.uploadBox}>
-            <Text style={styles.uploadText}>Required Documents:</Text>
-            <Text>• Driving License</Text>
-            <Text>• Vehicle Registration</Text>
+          <View style={[styles.uploadBox,{flexDirection:'column',alignItems:'center'}]}>
+            <TouchableOpacity
+              style={[styles.docBox,{width:'50%',height:100,marginBottom:10}]}
+              onPress={() => openPickerOptions('licence')}
+            >
+              {documents.licence?.uri ? (
+                <Image
+                  source={{ uri: documents.licence.uri }}
+                  style={styles.docImage}
+                />
+              ) : (
+                <Text style={styles.docText}>Licence</Text>
+              )}
+            </TouchableOpacity>
+            <TextInput placeholder="Vehicle Number" placeholderTextColor="#999" style={[styles.input,{width:'100%'}]} />
           </View>
         )}
 
@@ -216,7 +243,7 @@ const Signup = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.modalBtn, { backgroundColor: '#eee',marginBottom:50 }]}
+              style={[styles.modalBtn, { backgroundColor: '#eee', marginBottom: 50 }]}
               onPress={() => setModalVisible(false)}
             >
               <Text style={[styles.modalBtnText, { color: '#333' }]}>
@@ -270,10 +297,11 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
 
-  grid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
+ grid: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+},
 
   typeBox: {
     width: '48%',
@@ -282,6 +310,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'center',
+    marginBottom:10,
+    alignItems:'center'
   },
 
   typeBoxActive: {
@@ -290,6 +320,7 @@ const styles = StyleSheet.create({
 
   icon: {
     marginRight: 8,
+    fontSize:20
   },
 
   typeText: {
