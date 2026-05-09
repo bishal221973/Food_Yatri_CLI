@@ -62,7 +62,7 @@ const Notification = () => {
       </ScrollView>
 
       {/* Notifications List */}
-     <View style={{flex:1,marginTop:-30}}>
+     <View style={{flex:1,marginTop:'-130%'}}>
          <FlatList
         data={filteredNotifications}
         keyExtractor={(item) => item.id}
@@ -116,7 +116,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom:0,
     margin:0,
-    marginBottom:-50
+    marginBottom:-50,
+    height:60,
+    overflow:'hidden'
   },
   filterButton: {
     paddingHorizontal: 16,

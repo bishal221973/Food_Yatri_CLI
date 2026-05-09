@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Homeheader from '../../components/Homeheader'
-const Home = () => {
+const Home = ({navigation}) => {
   return (
     <View>
-        <Homeheader/>
+        <Homeheader navigation={navigation}/>
       <Text>Home</Text>
     </View>
   )

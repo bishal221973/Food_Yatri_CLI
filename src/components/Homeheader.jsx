@@ -19,7 +19,7 @@ const zones = [
     'Zone E',
 ]
 
-const Homeheader = () => {
+const Homeheader = ({navigation}) => {
     const [selectedZone, setSelectedZone] = useState('Zone A')
     const [modalVisible, setModalVisible] = useState(false)
     const [isOnline, setIsOnline] = useState(false)
@@ -43,7 +43,7 @@ const Homeheader = () => {
                 </View>
 
                 {/* RIGHT SIDE */}
-                <TouchableOpacity style={styles.sosBtn}>
+                <TouchableOpacity style={styles.sosBtn} onPress={() => navigation.navigate('SOS')}>
                     {/* <Icon name="warning" size={18} color="#fff" />
           <Text style={styles.sosText}>SOS</Text> */}
                     <Image source={require('../../assets/images/sos.png')} style={{ height: 35, width: 35 }} />
