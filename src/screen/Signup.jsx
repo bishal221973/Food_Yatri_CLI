@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  Alert,
 } from 'react-native'
 import { launchImageLibrary } from 'react-native-image-picker'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -16,6 +15,9 @@ const Signup = () => {
   const insets = useSafeAreaInsets()
 
   const [selectedType, setSelectedType] = useState('Walker')
+
+  const [modalVisible, setModalVisible] = useState(false)
+  const [activeDocType, setActiveDocType] = useState(null)
 
   const [documents, setDocuments] = useState({
     birth_certificate: null,
@@ -34,7 +36,7 @@ const Signup = () => {
     selectedType === 'Walker' || selectedType === 'Bicycler'
 
   // =========================
-  // PICK FROM GALLERY
+  // GALLERY PICKER
   // =========================
   const pickFromGallery = (type) => {
     launchImageLibrary(
@@ -57,25 +59,24 @@ const Signup = () => {
   }
 
   // =========================
-  // OPTIONS (GALLERY / SCAN)
+  // OPEN MODAL
   // =========================
   const openPickerOptions = (type) => {
-    Alert.alert('Upload Document', 'Choose option', [
-      {
-        text: 'Gallery',
-        onPress: () => pickFromGallery(type),
-      },
-      {
-        text: 'Scan (Camera)',
-        onPress: () => {
-          console.log('Open camera scanner here (to be implemented)')
-        },
-      },
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-    ])
+    setActiveDocType(type)
+    setModalVisible(true)
+  }
+
+  // =========================
+  // MODAL ACTIONS
+  // =========================
+  const onPickGallery = () => {
+    setModalVisible(false)
+    if (activeDocType) pickFromGallery(activeDocType)
+  }
+
+  const onScan = () => {
+    setModalVisible(false)
+    console.log('Open camera scanner for:', activeDocType)
   }
 
   return (
@@ -137,7 +138,6 @@ const Signup = () => {
         {isSimpleRider ? (
           <View style={styles.row}>
 
-            {/* 1 */}
             <TouchableOpacity
               style={styles.docBox}
               onPress={() => openPickerOptions('birth_certificate')}
@@ -148,11 +148,10 @@ const Signup = () => {
                   style={styles.docImage}
                 />
               ) : (
-                <Text style={styles.docText}>Birth Cert</Text>
+                <Text style={styles.docText}>Birth</Text>
               )}
             </TouchableOpacity>
 
-            {/* 2 */}
             <TouchableOpacity
               style={styles.docBox}
               onPress={() => openPickerOptions('citizenship_front')}
@@ -167,7 +166,6 @@ const Signup = () => {
               )}
             </TouchableOpacity>
 
-            {/* 3 */}
             <TouchableOpacity
               style={styles.docBox}
               onPress={() => openPickerOptions('citizenship_back')}
@@ -187,7 +185,7 @@ const Signup = () => {
           <View style={styles.uploadBox}>
             <Text style={styles.uploadText}>Required Documents:</Text>
             <Text>• Driving License</Text>
-            <Text>• Vehicle Registration Number</Text>
+            <Text>• Vehicle Registration</Text>
           </View>
         )}
 
@@ -195,8 +193,41 @@ const Signup = () => {
         <TouchableOpacity style={styles.submitBtn}>
           <Text style={styles.submitText}>Create Account</Text>
         </TouchableOpacity>
-
       </ScrollView>
+
+      {/* =========================
+          CUSTOM MODAL
+      ========================= */}
+      {modalVisible && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+
+            <Text style={styles.modalTitle}>Upload Document</Text>
+            <Text style={styles.modalSubtitle}>
+              Choose upload method
+            </Text>
+
+            <TouchableOpacity style={styles.modalBtn} onPress={onPickGallery}>
+              <Text style={styles.modalBtnText}>📁 Gallery</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.modalBtn} onPress={onScan}>
+              <Text style={styles.modalBtnText}>📷 Camera</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modalBtn, { backgroundColor: '#eee',marginBottom:50 }]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={[styles.modalBtnText, { color: '#333' }]}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      )}
+
     </SafeAreaView>
   )
 }
@@ -217,7 +248,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#111',
-    marginBottom: 5,
   },
 
   subtitle: {
@@ -232,15 +262,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     marginBottom: 15,
-    backgroundColor: '#F9FAFB',
   },
 
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginTop: 10,
-    marginBottom: 10,
-    color: '#333',
+    marginVertical: 10,
   },
 
   grid: {
@@ -250,10 +277,9 @@ const styles = StyleSheet.create({
 
   typeBox: {
     width: '48%',
-    backgroundColor: '#F3F4F6',
     padding: 10,
-    borderRadius: 12,
-    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'center',
   },
@@ -263,71 +289,101 @@ const styles = StyleSheet.create({
   },
 
   icon: {
-    fontSize: 18,
     marginRight: 8,
   },
 
   typeText: {
-    color: '#333',
     fontWeight: '600',
+    color: '#333',
   },
 
   typeTextActive: {
     color: '#fff',
   },
 
-  // 🔥 DOCUMENT ROW
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 15,
   },
 
   docBox: {
     width: '30%',
-    height: 70,
-    borderRadius: 10,
+    height: 80,
     backgroundColor: '#F3F4F6',
+    borderRadius: 10,
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
   },
 
   docImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'stretch',
+    resizeMode: 'cover',
   },
 
   docText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
   },
 
   uploadBox: {
-    backgroundColor: '#F9FAFB',
     padding: 15,
+    backgroundColor: '#F9FAFB',
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#eee',
-  },
-
-  uploadText: {
-    fontWeight: '600',
   },
 
   submitBtn: {
     backgroundColor: '#111',
     padding: 15,
     borderRadius: 10,
-    alignItems: 'center',
     marginTop: 20,
+    alignItems: 'center',
   },
 
   submitText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
+  },
+
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+
+  modalBox: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+
+  modalSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 15,
+  },
+
+  modalBtn: {
+    backgroundColor: '#1E40AF',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+
+  modalBtnText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 })
