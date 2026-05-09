@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 
 import Home from "../screen/auth/Home"
 import Wallet from "../screen/auth/Wallet"
+import Notification from "../screen/auth/Notification"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 const Tab = createBottomTabNavigator()
 
@@ -58,7 +59,7 @@ const TabNavigation = () => {
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Wallet" component={Wallet} />
       <Tab.Screen name="Gigs" component={Gigs} />
-      <Tab.Screen name="Update" component={Profile} />
+      <Tab.Screen name="Update" component={Notification} />
     </Tab.Navigator>
   )
 }
