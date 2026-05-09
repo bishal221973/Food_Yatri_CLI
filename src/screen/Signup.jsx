@@ -6,12 +6,13 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Image,
+  Alert,
 } from 'react-native'
 import { launchImageLibrary } from 'react-native-image-picker'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const Signup = () => {
-  // ✅ ALL hooks at top (IMPORTANT)
   const insets = useSafeAreaInsets()
 
   const [selectedType, setSelectedType] = useState('Walker')
@@ -32,8 +33,10 @@ const Signup = () => {
   const isSimpleRider =
     selectedType === 'Walker' || selectedType === 'Bicycler'
 
-  // ✅ Safe document picker
-  const pickDocument = (type) => {
+  // =========================
+  // PICK FROM GALLERY
+  // =========================
+  const pickFromGallery = (type) => {
     launchImageLibrary(
       {
         mediaType: 'photo',
@@ -41,13 +44,9 @@ const Signup = () => {
       },
       (response) => {
         if (response.didCancel) return
-        if (response.errorCode) {
-          console.log(response.errorMessage)
-          return
-        }
 
         const asset = response.assets?.[0]
-        if (!asset) return
+        if (!asset?.uri) return
 
         setDocuments((prev) => ({
           ...prev,
@@ -55,6 +54,28 @@ const Signup = () => {
         }))
       }
     )
+  }
+
+  // =========================
+  // OPTIONS (GALLERY / SCAN)
+  // =========================
+  const openPickerOptions = (type) => {
+    Alert.alert('Upload Document', 'Choose option', [
+      {
+        text: 'Gallery',
+        onPress: () => pickFromGallery(type),
+      },
+      {
+        text: 'Scan (Camera)',
+        onPress: () => {
+          console.log('Open camera scanner here (to be implemented)')
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ])
   }
 
   return (
@@ -114,51 +135,59 @@ const Signup = () => {
         <Text style={styles.sectionTitle}>Documents</Text>
 
         {isSimpleRider ? (
-          <View style={styles.uploadBox}>
-            <Text style={styles.uploadText}>Required Documents:</Text>
+          <View style={styles.row}>
 
+            {/* 1 */}
             <TouchableOpacity
-              style={styles.uploadBtn}
-              onPress={() => pickDocument('birth_certificate')}
+              style={styles.docBox}
+              onPress={() => openPickerOptions('birth_certificate')}
             >
-              <Text style={styles.uploadBtnText}>
-                {documents.birth_certificate
-                  ? '✔ Birth Certificate Uploaded'
-                  : 'Upload Birth Certificate'}
-              </Text>
+              {documents.birth_certificate?.uri ? (
+                <Image
+                  source={{ uri: documents.birth_certificate.uri }}
+                  style={styles.docImage}
+                />
+              ) : (
+                <Text style={styles.docText}>Birth Cert</Text>
+              )}
             </TouchableOpacity>
 
+            {/* 2 */}
             <TouchableOpacity
-              style={styles.uploadBtn}
-              onPress={() => pickDocument('citizenship_front')}
+              style={styles.docBox}
+              onPress={() => openPickerOptions('citizenship_front')}
             >
-              <Text style={styles.uploadBtnText}>
-                {documents.citizenship_front
-                  ? '✔ Citizenship Front Uploaded'
-                  : 'Upload Citizenship Front'}
-              </Text>
+              {documents.citizenship_front?.uri ? (
+                <Image
+                  source={{ uri: documents.citizenship_front.uri }}
+                  style={styles.docImage}
+                />
+              ) : (
+                <Text style={styles.docText}>Front</Text>
+              )}
             </TouchableOpacity>
 
+            {/* 3 */}
             <TouchableOpacity
-              style={styles.uploadBtn}
-              onPress={() => pickDocument('citizenship_back')}
+              style={styles.docBox}
+              onPress={() => openPickerOptions('citizenship_back')}
             >
-              <Text style={styles.uploadBtnText}>
-                {documents.citizenship_back
-                  ? '✔ Citizenship Back Uploaded'
-                  : 'Upload Citizenship Back'}
-              </Text>
+              {documents.citizenship_back?.uri ? (
+                <Image
+                  source={{ uri: documents.citizenship_back.uri }}
+                  style={styles.docImage}
+                />
+              ) : (
+                <Text style={styles.docText}>Back</Text>
+              )}
             </TouchableOpacity>
+
           </View>
         ) : (
           <View style={styles.uploadBox}>
             <Text style={styles.uploadText}>Required Documents:</Text>
             <Text>• Driving License</Text>
             <Text>• Vehicle Registration Number</Text>
-
-            <TouchableOpacity style={styles.uploadBtn}>
-              <Text style={styles.uploadBtnText}>Upload Documents</Text>
-            </TouchableOpacity>
           </View>
         )}
 
@@ -166,12 +195,14 @@ const Signup = () => {
         <TouchableOpacity style={styles.submitBtn}>
           <Text style={styles.submitText}>Create Account</Text>
         </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   )
 }
 
 export default Signup
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -214,7 +245,6 @@ const styles = StyleSheet.create({
 
   grid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
 
@@ -224,10 +254,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 12,
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 10,
   },
 
   typeBoxActive: {
@@ -235,7 +263,7 @@ const styles = StyleSheet.create({
   },
 
   icon: {
-    fontSize: 20,
+    fontSize: 18,
     marginRight: 8,
   },
 
@@ -248,32 +276,45 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
+  // 🔥 DOCUMENT ROW
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 15,
+  },
+
+  docBox: {
+    width: '30%',
+    height: 70,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+
+  docImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'stretch',
+  },
+
+  docText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
+  },
+
   uploadBox: {
     backgroundColor: '#F9FAFB',
     padding: 15,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#eee',
-    marginBottom: 20,
   },
 
   uploadText: {
     fontWeight: '600',
-    marginBottom: 5,
-  },
-
-  uploadBtn: {
-    marginTop: 10,
-    backgroundColor: '#1E40AF',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-
-  uploadBtnText: {
-    color: '#fff',
-    fontWeight: '600',
-    textAlign: 'center',
   },
 
   submitBtn: {
@@ -281,7 +322,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
 
   submitText: {
