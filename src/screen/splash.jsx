@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { View, Text, Image, StyleSheet, Animated, Easing } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Splash = ({ navigation }) => {
 
@@ -9,6 +10,7 @@ const Splash = ({ navigation }) => {
 
   useEffect(() => {
 
+    // Pulse animation for dots
     const createPulse = (anim) => {
       return Animated.loop(
         Animated.sequence([
@@ -33,16 +35,30 @@ const Splash = ({ navigation }) => {
     const a3 = createPulse(dot3)
 
     a1.start()
-
     setTimeout(() => a2.start(), 150)
     setTimeout(() => a3.start(), 300)
 
-    const timer = setTimeout(() => {
-      navigation.replace('Login')
-    }, 4000)
+    // Async function to check token
+    const checkToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        // Redirect after 4 seconds
+        setTimeout(() => {
+          if (token) {
+            navigation.replace('Home'); // token exists -> go to Home
+          } else {
+            navigation.replace('Login'); // no token -> go to Login
+          }
+        }, 4000);
+      } catch (error) {
+        console.log('Error reading token:', error);
+        navigation.replace('Login');
+      }
+    }
+
+    checkToken();
 
     return () => {
-      clearTimeout(timer)
       a1.stop()
       a2.stop()
       a3.stop()
@@ -55,7 +71,6 @@ const Splash = ({ navigation }) => {
 
       {/* Logo */}
       <View style={styles.logoContainer}>
-
         <Image
           source={require('../../assets/images/delivery.png')}
           style={styles.logo}
@@ -73,14 +88,10 @@ const Splash = ({ navigation }) => {
       {/* Loader */}
       <View style={styles.loaderContainer}>
         <View style={styles.dotsRow}>
-
           <Animated.View style={[styles.dot, { transform: [{ scale: dot1 }] }]} />
           <Animated.View style={[styles.dot, { transform: [{ scale: dot2 }] }]} />
           <Animated.View style={[styles.dot, { transform: [{ scale: dot3 }] }]} />
-
         </View>
-
-        {/* <Text style={styles.loadingText}>Loading...</Text> */}
       </View>
 
     </View>
@@ -138,12 +149,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#999',
     marginHorizontal: 5,
-    marginTop:-200
-  },
-
-  loadingText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#777',
+    marginTop: -200
   },
 })
