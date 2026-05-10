@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
     StyleSheet,
     Text,
@@ -7,10 +7,11 @@ import {
     Modal,
     FlatList,
     Image,
-    Switch
+    Switch,
+    Alert
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
-
+import api from '../../utils/axiosUtils'
 const zones = [
     'Zone A',
     'Zone B',
@@ -19,11 +20,27 @@ const zones = [
     'Zone E',
 ]
 
-const Homeheader = ({navigation}) => {
+const Homeheader = ({ navigation }) => {
     const [selectedZone, setSelectedZone] = useState('Zone A')
     const [modalVisible, setModalVisible] = useState(false)
-    const [isOnline, setIsOnline] = useState(false)
+    const [isOnline, setIsOnline] = useState(true)
 
+    useEffect(() => {
+        const updateStatus = async () => {
+            try {
+                if (isOnline) {
+                    await api.post('/rider/status', { status: 'online' });
+                } else {
+                    await api.post('/rider/status', { status: 'offline' });
+                }
+                console.log('Status updated:', isOnline ? 'online' : 'offline');
+            } catch (error) {
+                console.log('Failed to update status:', error);
+            }
+        }
+
+        updateStatus();
+    }, [isOnline]);
     return (
         <View style={styles.mainContainer}>
             {/* HEADER */}
@@ -46,7 +63,7 @@ const Homeheader = ({navigation}) => {
                 <TouchableOpacity style={styles.sosBtn} onPress={() => navigation.navigate('SOS')}>
                     {/* <Icon name="warning" size={18} color="#fff" />
           <Text style={styles.sosText}>SOS</Text> */}
-          {/* <View style={{ height: 35, width: 35 }}></View> */}
+                    {/* <View style={{ height: 35, width: 35 }}></View> */}
                     <Image source={require('../../assets/images/sos.png')} style={{ height: 35, width: 35 }} />
                 </TouchableOpacity>
             </View>
@@ -235,7 +252,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         // backgroundColor: '#fff',
         paddingHorizontal: 15,
-        paddingVertical:5
+        paddingVertical: 5
     },
 
     left: {
