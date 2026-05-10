@@ -150,8 +150,9 @@ const Signup = () => {
       // TEXT DATA
       formData.append('name', name)
       formData.append('address', address)
-      formData.append('phone', phone)
-      formData.append('riderType', selectedType)
+      formData.append('contact', phone)
+      formData.append('rider_type', selectedType)
+      formData.append('vehicle_number', vehicle_no)
 
       // DOCUMENTS (IMAGES)
       Object.keys(documents).forEach((key) => {
