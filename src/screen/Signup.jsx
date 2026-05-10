@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ActivityIndicator
 } from 'react-native'
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -15,7 +16,7 @@ import { post } from '../../utils/axiosUtils'
 import api from '../../utils/axiosUtils'
 import FastImage from 'react-native-fast-image'
 
-const Signup = ({navigation}) => {
+const Signup = ({ navigation }) => {
   const insets = useSafeAreaInsets()
 
   const [selectedType, setSelectedType] = useState('Walker')
@@ -145,10 +146,11 @@ const Signup = ({navigation}) => {
     return Object.keys(newErrors).length === 0
   }
   const [successModalVisible, setSuccessModalVisible] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const submitForm = async () => {
-    
+
     if (!validateForm()) return
+    setLoading(true); // Start loading
     try {
       const formData = new FormData()
 
@@ -199,15 +201,30 @@ const Signup = ({navigation}) => {
     } catch (error) {
       console.log(error)
       alert(error)
+    } finally {
+      setLoading(false); // Stop loading
     }
   }
   return (
     <SafeAreaView style={styles.safeArea}>
+      {loading && (
+      <View style={{
+        position: 'absolute',
+        top: 0, bottom: 0, left: 0, right: 0,
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 99999,
+      }}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={{ marginTop: 10, color: '#fff', fontWeight: '600' }}>Please wait...</Text>
+      </View>
+      )} 
       {successModalVisible && (
-        <View style={[styles.modalOverlay,{zIndex:99999,flexDirection:'row',justifyContent:'center',alignItems:'center',paddingHorizontal:30}]}>
-          <View style={[styles.modalBox, { alignItems: 'center',justifyContent:'center',borderRadius:10 }]}>
+        <View style={[styles.modalOverlay, { zIndex: 99999, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 }]}>
+          <View style={[styles.modalBox, { alignItems: 'center', justifyContent: 'center', borderRadius: 10 }]}>
             {/* <Text style={{ fontSize: 40, marginBottom: 15 }}>✅</Text> */}
-            <Image source={require('../../assets/images/check.png')} style={{height:70,width:70}}/>
+            <Image source={require('../../assets/images/check.png')} style={{ height: 70, width: 70 }} />
             <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 }}>
               Registration successfull!
             </Text>
