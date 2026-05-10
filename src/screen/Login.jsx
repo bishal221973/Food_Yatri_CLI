@@ -10,16 +10,70 @@ import {
   Image,
   ScrollView,
 } from 'react-native'
+import api from '../../utils/axiosUtils'
+import Loading from '../../src/components/Loading'
+
 
 const Login = ({ navigation }) => {
+  const [errors, setErrors] = useState({});
 
   const [phone, setPhone] = useState('')
+  const [loading, setLoading] = useState(false);
+  const loginUser = async () => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('phone', phone);
 
+      // alert('Hello')
+      const response = await api.post('/rider/login', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      // alert('Hello')
+      console.log(response)
+
+      const data = response.data;
+      // console.log('SERVER RESPONSE:', data)
+      console.log('SERVER ERRORS:', data.errors);
+
+      if (data.success) {
+        navigation.replace('Home')
+      } else {
+        if (data.errors) {
+          setErrors(data.errors);
+        } else if (data.message) {
+          alert(data.message);
+        } else {
+          alert('Login failed');
+        }
+      }
+    } catch (error) {
+      if (error.response) {
+        console.log('API validation error:', error.response.data);
+
+        if (error.response.data.errors) {
+          setErrors(error.response.data.errors); // show errors in UI
+        } else if (error.response.data.message) {
+          alert(error.response.data.message);
+        }
+      } else {
+        alert('Network error or server down');
+      }
+    } finally {
+      setLoading(false); // Stop loading
+    }
+    // () => 
+  }
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      {loading && (
+        <Loading />
+      )}
 
       <ScrollView
         contentContainerStyle={styles.container}
@@ -47,6 +101,7 @@ const Login = ({ navigation }) => {
 
           <Text style={styles.label}>Phone Number</Text>
 
+
           <View style={styles.inputBox}>
             <Text style={styles.countryCode}>+977</Text>
 
@@ -59,15 +114,20 @@ const Login = ({ navigation }) => {
               maxLength={10}
               placeholderTextColor="#999"
             />
-          </View>
 
+          </View>
+          {errors.phone && (
+            <Text style={{ color: 'red', fontSize: 12, marginBottom: 10 }}>
+              {errors.phone}
+            </Text>
+          )}
           <TouchableOpacity
             style={[
               styles.button,
-              { backgroundColor: phone.length >= 10 ? '#1E40AF' : '#A5B4FC' }
+              { backgroundColor: phone.length >= 10 ? '#1E40AF' : '#A5B4FC',marginTop:10 }
             ]}
             disabled={phone.length < 10}
-            onPress={() => navigation.navigate('Home')}
+            onPress={loginUser}
           >
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
@@ -89,12 +149,12 @@ const Login = ({ navigation }) => {
 export default Login
 
 const styles = StyleSheet.create({
- container: {
-  flexGrow: 1,
-  backgroundColor: '#fff',
-  paddingHorizontal: 25,
-  justifyContent: 'center',
-},
+  container: {
+    flexGrow: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 25,
+    justifyContent: 'center',
+  },
 
   logoContainer: {
     alignItems: 'center',
@@ -116,7 +176,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginTop: 5,
-    fontFamily:'rider'
+    fontFamily: 'rider'
   },
 
   formContainer: {
@@ -137,7 +197,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 10,
     paddingHorizontal: 10,
-    marginBottom: 20,
+    // marginBottom: 20,
     backgroundColor: '#F9FAFB',
   },
 
