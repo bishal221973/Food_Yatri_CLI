@@ -11,8 +11,11 @@ import {
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import Icon from 'react-native-vector-icons/Ionicons'
+import { post } from '../../utils/axiosUtils'
+import api from '../../utils/axiosUtils'
+import FastImage from 'react-native-fast-image'
 
-const Signup = () => {
+const Signup = ({navigation}) => {
   const insets = useSafeAreaInsets()
 
   const [selectedType, setSelectedType] = useState('Walker')
@@ -107,42 +110,44 @@ const Signup = () => {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [phone, setPhone] = useState('')
-
+  const [vehicleNo, setVehicleNo] = useState('')
   const validateForm = () => {
-  const newErrors = {}
+    const newErrors = {}
 
-  // TEXT FIELDS
-  if (!name.trim()) newErrors.name = 'Full name is required'
-  if (!address.trim()) newErrors.address = 'Address is required'
-  if (!phone.trim()) newErrors.phone = 'Contact number is required'
+    // TEXT FIELDS
+    if (!name.trim()) newErrors.name = 'Full name is required'
+    if (!address.trim()) newErrors.address = 'Address is required'
+    if (!phone.trim()) newErrors.phone = 'Contact number is required'
 
-  // RIDER TYPE
-  if (!selectedType) newErrors.riderType = 'Rider type is required'
+    // RIDER TYPE
+    if (!selectedType) newErrors.riderType = 'Rider type is required'
 
-  // DOCUMENT VALIDATION
-  if (isSimpleRider) {
-    if (!documents.birth_certificate?.uri)
-      newErrors.birth_certificate = 'Birth certificate is required'
+    // DOCUMENT VALIDATION
+    if (isSimpleRider) {
+      if (!documents.birth_certificate?.uri)
+        newErrors.birth_certificate = 'Birth certificate is required'
 
-    if (!documents.citizenship_front?.uri)
-      newErrors.citizenship_front = 'Citizenship front is required'
+      if (!documents.citizenship_front?.uri)
+        newErrors.citizenship_front = 'Citizenship front is required'
 
-    if (!documents.citizenship_back?.uri)
-      newErrors.citizenship_back = 'Citizenship back is required'
-  } else {
-    if (!documents.licence?.uri)
-      newErrors.licence = 'Licence is required'
+      if (!documents.citizenship_back?.uri)
+        newErrors.citizenship_back = 'Citizenship back is required'
+    } else {
+      if (!documents.licence?.uri)
+        newErrors.licence = 'Licence is required'
 
-    if (!vehicleNo.trim())
-      newErrors.vehicle_no = 'Vehicle number is required'
+      if (!vehicleNo.trim())
+        newErrors.vehicle_no = 'Vehicle number is required'
+    }
+
+    setErrors(newErrors)
+
+    return Object.keys(newErrors).length === 0
   }
-
-  setErrors(newErrors)
-
-  return Object.keys(newErrors).length === 0
-}
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
 
   const submitForm = async () => {
+    
     if (!validateForm()) return
     try {
       const formData = new FormData()
@@ -152,9 +157,9 @@ const Signup = () => {
       formData.append('address', address)
       formData.append('contact', phone)
       formData.append('rider_type', selectedType)
-      formData.append('vehicle_number', vehicle_no)
-
-      // DOCUMENTS (IMAGES)
+      formData.append('vehicle_number', vehicleNo)
+      // alert(name)
+      // DOCUMENTS (IMAGES) 
       Object.keys(documents).forEach((key) => {
         const file = documents[key]
 
@@ -167,29 +172,55 @@ const Signup = () => {
         }
       })
 
-      const response = await fetch('https://YOUR_API_URL.com/rider/signup', {
-        method: 'POST',
+      // console.log(formData)
+
+      // const response = await post('/rider/register', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'multipart/form-data',
+      //   },
+      //   body: formData,
+      // })
+
+      const response = await api.post('/rider/register', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        body: formData,
       })
 
-      const data = await response.json()
+      const data = response.data;
       console.log('SERVER RESPONSE:', data)
 
-      if (response.ok) {
-        alert('Account Created Successfully!')
+      if (data.success) {
+        setSuccessModalVisible(true);
       } else {
         alert('Failed to submit')
       }
     } catch (error) {
       console.log(error)
-      alert('Something went wrong')
+      alert(error)
     }
   }
   return (
     <SafeAreaView style={styles.safeArea}>
+      {successModalVisible && (
+        <View style={[styles.modalOverlay,{zIndex:99999,flexDirection:'row',justifyContent:'center',alignItems:'center',paddingHorizontal:30}]}>
+          <View style={[styles.modalBox, { alignItems: 'center',justifyContent:'center',borderRadius:10 }]}>
+            {/* <Text style={{ fontSize: 40, marginBottom: 15 }}>✅</Text> */}
+            <Image source={require('../../assets/images/check.png')} style={{height:70,width:70}}/>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 }}>
+              Registration successfull!
+            </Text>
+            <Text style={{ textAlign: 'center', marginBottom: 20 }}>Your account is currently under verification. We will notify you as soon as the verification process is complete.</Text>
+            <TouchableOpacity
+              style={[styles.modalBtn, { width: '100%' }]}
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.modalBtnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
@@ -310,7 +341,7 @@ const Signup = () => {
                 <Text style={styles.docText}>Licence</Text>
               )}
             </TouchableOpacity>
-            <TextInput placeholder="Vehicle Number" placeholderTextColor="#999" style={[styles.input, { width: '100%' }]} />
+            <TextInput placeholder="Vehicle Number" value={vehicleNo} onChangeText={setVehicleNo} placeholderTextColor="#999" style={[styles.input, { width: '100%' }]} />
           </View>
         )}
 
@@ -454,7 +485,7 @@ const styles = StyleSheet.create({
   docText: {
     fontSize: 12,
     fontWeight: '600',
-    textAlign:'center'
+    textAlign: 'center'
   },
 
   uploadBox: {
@@ -466,19 +497,19 @@ const styles = StyleSheet.create({
   submitBtn: {
     backgroundColor: 'red',
     paddingHorizontal: 8,
-    paddingVertical:7,
+    paddingVertical: 7,
     borderRadius: 10,
     marginTop: 20,
     alignItems: 'center',
-    position:'absolute',
-    right:10,
-    top:10
+    position: 'absolute',
+    right: 10,
+    top: 10
   },
 
   submitText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize:14
+    fontSize: 14
   },
 
   modalOverlay: {
@@ -521,8 +552,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-  errorText:{
-    color:'red',
-    fontSize:10
+  errorText: {
+    color: 'red',
+    fontSize: 10
   }
 })

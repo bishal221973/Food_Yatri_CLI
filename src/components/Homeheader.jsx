@@ -46,6 +46,7 @@ const Homeheader = ({navigation}) => {
                 <TouchableOpacity style={styles.sosBtn} onPress={() => navigation.navigate('SOS')}>
                     {/* <Icon name="warning" size={18} color="#fff" />
           <Text style={styles.sosText}>SOS</Text> */}
+          {/* <View style={{ height: 35, width: 35 }}></View> */}
                     <Image source={require('../../assets/images/sos.png')} style={{ height: 35, width: 35 }} />
                 </TouchableOpacity>
             </View>

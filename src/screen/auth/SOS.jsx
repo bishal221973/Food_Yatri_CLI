@@ -9,6 +9,7 @@ import {
   Alert,
   SafeAreaView,
   Platform,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -62,8 +63,9 @@ const SOS = ({ navigation }) => {
         {/* SOS Button */}
         <View style={styles.sosSection}>
           <TouchableOpacity style={styles.sosButton} onPress={handleSendSOS}>
-            <Icon name="alert-circle" size={50} color="#fff" />
-            <Text style={styles.sosText}>SEND SOS</Text>
+            {/* <Icon name="alert-circle" size={50} color="#fff" /> */}
+            <Image source={require('../../../assets/images/help.png')} style={{height:50,width:50}}/>
+            <Text style={styles.sosText}>Company Alert</Text>
           </TouchableOpacity>
           <Text style={styles.sosInstruction}>
             Press the button above to send an emergency alert to authorities and your contacts.
