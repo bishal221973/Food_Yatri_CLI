@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import api from '../../utils/axiosUtils'
 import Loading from '../../src/components/Loading'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const Login = ({ navigation }) => {
@@ -39,6 +40,8 @@ const Login = ({ navigation }) => {
       console.log('SERVER ERRORS:', data.errors);
 
       if (data.success) {
+              await AsyncStorage.setItem('token', data.token); // Assuming your API sends token in data.token
+
         navigation.replace('Home')
       } else {
         if (data.errors) {
@@ -124,7 +127,7 @@ const Login = ({ navigation }) => {
           <TouchableOpacity
             style={[
               styles.button,
-              { backgroundColor: phone.length >= 10 ? '#1E40AF' : '#A5B4FC',marginTop:10 }
+              { backgroundColor: phone.length >= 10 ? '#1E40AF' : '#A5B4FC', marginTop: 10 }
             ]}
             disabled={phone.length < 10}
             onPress={loginUser}

@@ -15,7 +15,7 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem('authToken'); // Token stored in AsyncStorage
+      const token = await AsyncStorage.getItem('token'); // Token stored in AsyncStorage
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
