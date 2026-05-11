@@ -12,18 +12,20 @@ import {
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import api from '../../utils/axiosUtils'
-const zones = [
-    'Zone A',
-    'Zone B',
-    'Zone C',
-    'Zone D',
-    'Zone E',
-]
+// const zones = [
+//     'Zone A',
+//     'Zone B',
+//     'Zone C',
+//     'Zone D',
+//     'Zone E',
+// ]
+
 
 const Homeheader = ({ navigation }) => {
-    const [selectedZone, setSelectedZone] = useState('Zone A')
+    const [selectedZone, setSelectedZone] = useState(null)
     const [modalVisible, setModalVisible] = useState(false)
     const [isOnline, setIsOnline] = useState(true)
+    const [zones,setZones]=useState([]);
 
     useEffect(() => {
         const updateStatus = async () => {
@@ -41,6 +43,20 @@ const Homeheader = ({ navigation }) => {
 
         updateStatus();
     }, [isOnline]);
+
+    const fetchZones=async()=>{
+        const response=await api.get('/rider/zones');
+
+        console.log();
+        setZones(response.data);
+        if(response.data.length > 0){
+            setSelectedZone(response.data[0]?.name)
+        }
+    }
+
+    useEffect(()=>{
+        fetchZones();
+    })
     return (
         <View style={styles.mainContainer}>
             {/* HEADER */}
@@ -106,17 +122,13 @@ const Homeheader = ({ navigation }) => {
 
                         <FlatList
                             data={zones}
-                            keyExtractor={(item) => item}
+                            keyExtractor={(item) => item?.id}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
                                     style={[
                                         styles.zoneItem,
                                         selectedZone === item && styles.zoneItemActive,
                                     ]}
-                                    onPress={() => {
-                                        setSelectedZone(item)
-                                        setModalVisible(false)
-                                    }}
                                 >
                                     <Text
                                         style={[
@@ -124,7 +136,7 @@ const Homeheader = ({ navigation }) => {
                                             selectedZone === item && styles.zoneItemTextActive,
                                         ]}
                                     >
-                                        {item}
+                                        {item?.name}
                                     </Text>
                                 </TouchableOpacity>
                             )}
