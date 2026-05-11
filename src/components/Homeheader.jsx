@@ -56,7 +56,7 @@ const Homeheader = ({ navigation }) => {
 
     useEffect(()=>{
         fetchZones();
-    })
+    },[])
     return (
         <View style={styles.mainContainer}>
             {/* HEADER */}
