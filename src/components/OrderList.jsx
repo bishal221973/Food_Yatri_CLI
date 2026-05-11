@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     Alert,
 } from 'react-native';
-
+import api from '../../utils/axiosUtils';
+import Loading from './Loading';
 const ordersData = [
     { id: '1', customer: 'John Doe', phone: '+1234567890', address: '123 Main St', price: '$12.50', paymentStatus: 'Paid', paymentMode: 'Cash' },
     { id: '2', customer: 'Alice Smith', phone: '+1987654321', address: '456 Park Ave', price: '$15.00', paymentStatus: 'Pending', paymentMode: 'Esewa' },
@@ -15,21 +16,43 @@ const ordersData = [
     { id: '4', customer: 'Emma Brown', phone: '+1222333444', address: '321 Pine Rd', price: '$18.20', paymentStatus: 'Paid', paymentMode: 'Esewa' },
 ];
 
-const OrderList = () => {
-    const [orders, setOrders] = useState(ordersData);
-
+const OrderList = ({ location }) => {
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(false);
     const handleAccept = (orderId) => {
         Alert.alert('Order Accepted', `You accepted order #${orderId}`);
         setOrders(prev => prev.filter(order => order.id !== orderId));
     };
+
+    const fetchNearbyOrders = async () => {
+        try {
+            const response = await api.get('/rider/orders', {
+                lat: location?.lat,
+                lng: location?.lng,
+            });
+            setOrders(response.data);
+        } catch (error) {
+
+        } finally {
+            setLoading(false);
+        }
+        // API CALL HERE
+    };
+    useEffect(() => {
+        if (location?.lat && location?.lng) {
+            fetchNearbyOrders();
+        }
+    }, [location?.lat, location?.lng]);
 
     const renderOrder = ({ item }) => (
         <View style={styles.orderCard}>
             {/* Top Row: Profile + Name + Phone + Price */}
             <View style={styles.topRow}>
                 <View style={styles.userInfo}>
+                    {/* <Text>{location?.lat}</Text>
+                    <Text>{location?.lng}</Text> */}
                     <View style={styles.profileCircle}>
-                        <Text style={styles.profileInitial}>{item.customer.charAt(0)}</Text>
+                        <Text style={styles.profileInitial}>{item.customer?.charAt(0)}</Text>
                     </View>
                     <View style={styles.userDetails}>
                         <Text style={styles.customerName}>{item.customer}</Text>
@@ -44,7 +67,7 @@ const OrderList = () => {
                 <View style={styles.statusContainer}>
                     <View style={[
                         styles.paymentStatus,
-                        item.paymentStatus.toLowerCase() === 'paid' ? styles.paid : styles.pending
+                        item.paymentStatus?.toLowerCase() === 'paid' ? styles.paid : styles.pending
                     ]}>
                         <Text style={styles.paymentText}>{item.paymentStatus}</Text>
                     </View>
@@ -73,7 +96,7 @@ export default OrderList;
 
 const styles = StyleSheet.create({
     listContent: {
-        padding: 10,
+        paddingTop: 10,
     },
     orderCard: {
         backgroundColor: '#fff',
