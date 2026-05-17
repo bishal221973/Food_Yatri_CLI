@@ -63,11 +63,11 @@ const AcceptedOrders = ({ location }) => {
                     {
                         item?.available_for_delevery == 'Pending' ? (
 
-                            <Text style={{color:'#1E40AF',fontWeight:'bold'}}>{item?.available_for_delevery}</Text>
+                            <Text style={{ color: '#1E40AF', fontWeight: 'bold' }}>{item?.available_for_delevery}</Text>
 
                         ) : (
 
-                            <Text style={{color:'green',fontWeight:'bold'}}>{item?.available_for_delevery}</Text>
+                            <Text style={{ color: 'green', fontWeight: 'bold' }}>{item?.available_for_delevery}</Text>
 
                         )
                     }
@@ -172,12 +172,7 @@ const AcceptedOrders = ({ location }) => {
                                 <Text style={styles.actionText}>Map</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={[styles.modalBtn, styles.acceptButton]}
-                                onPress={() => handleAccept(selectedOrder?.id)}
-                            >
-                                <Text style={styles.actionText}>Accept</Text>
-                            </TouchableOpacity>
+                            
                         </View>
                     </View>
                 </View>
