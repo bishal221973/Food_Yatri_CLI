@@ -17,12 +17,18 @@ import api from '../../utils/axiosUtils';
 const OrderList = ({ location }) => {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [visible, setVisible] = useState(false);
 
+  const openConfirmModal = orderId => {
+    setSelectedOrderId(orderId?.id);
+    setVisible(true);
+  };
   // Accept order
-  const handleAccept = async(orderId) => {
-    Alert.alert('Order Accepted', `You accepted order #${orderId}`);
+  const handleAccept = async (orderId) => {
+    // Alert.alert('Order Accepted', `You accepted order #${orderId}`);
     const response=await api.put(`/rider/accept-order/${orderId}`);
-
+    setVisible(false);
     fetchNearbyOrders();
     // setOrders((prev) => prev.filter((order) => order.id !== orderId));
     setSelectedOrder(null);
@@ -54,7 +60,7 @@ const OrderList = ({ location }) => {
     // const restLat = order?.current_lat;
     // const restLng = order?.current_lng;
 
-     const restLat = order?.farest_restaurent?.restaurent_lat;
+    const restLat = order?.farest_restaurent?.restaurent_lat;
     const restLng = order?.farest_restaurent?.restaurent_lng;
 
     if (!riderLat || !riderLng || !restLat || !restLng) {
@@ -68,69 +74,64 @@ const OrderList = ({ location }) => {
   };
 
   const getLocationName = async (lat, lng) => {
-  try {
-    const apiKey = "YOUR_GOOGLE_MAPS_API_KEY";
+    try {
+      const apiKey = "YOUR_GOOGLE_MAPS_API_KEY";
 
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
-    );
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (data.status === "OK") {
-      return data.results[0].formatted_address;
-    } else {
-      console.log("Geocode error:", data.status);
+      if (data.status === "OK") {
+        return data.results[0].formatted_address;
+      } else {
+        console.log("Geocode error:", data.status);
+        return null;
+      }
+    } catch (error) {
+      console.log("Error:", error);
       return null;
     }
-  } catch (error) {
-    console.log("Error:", error);
-    return null;
-  }
-};
+  };
   // Render order card
   const renderOrder = ({ item }) => (
-    
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={() => setSelectedOrder(item)}
-      style={styles.orderCard}
-    >
-      <View style={styles.topRow}>
-        <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-          <Text style={styles.price}>Rs. {item.total_amount}</Text>
-          <Text style={{ fontSize: 12 }}>
-            (EST.{' '}
-            {Number(Number(item.farest_restaurent?.distance_from_me) +
-              Number(item.farest_restaurent?.distance)).toFixed(2)}{' '}
-            K.M.)
-          </Text>
-        </View>
-        <View style={styles.userInfo}>
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => handleAccept(item.id)}
-          >
-            <Text style={styles.actionText}>Accept</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+    <>
+      
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => setSelectedOrder(item)}
+        style={styles.orderCard}
+      >
+        <View style={styles.topRow}>
+          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+            <Text style={styles.price}>Rs. {item.total_amount}</Text>
+            <Text style={{ fontSize: 12 }}>
+              (EST.{' '}
+              {Number(Number(item.farest_restaurent?.distance_from_me) +
+                Number(item.farest_restaurent?.distance)).toFixed(2)}{' '}
+              K.M.)
+            </Text>
+          </View>
 
-      <View style={styles.bottomRow}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={{ height: 10, width: 10, backgroundColor: 'red', borderRadius: 10 }} />
-          <Text>{item?.receiver_name}</Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={{ height: 10, width: 10, backgroundColor: 'green', borderRadius: 10 }} />
-          <Text>{item.farest_restaurent?.restaurent_name}</Text>
+
+        <View style={styles.bottomRow}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ height: 10, width: 10, backgroundColor: 'red', borderRadius: 10 }} />
+            <Text>{item?.receiver_name}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ height: 10, width: 10, backgroundColor: 'green', borderRadius: 10 }} />
+            <Text>{item.farest_restaurent?.restaurent_name}</Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </>
   );
 
   return (
-    <>
+    <View styles={{position:'relative'}}>
       {/* Order List */}
       <FlatList
         data={orders}
@@ -155,7 +156,7 @@ const OrderList = ({ location }) => {
               <Text style={styles.modalTitle}>Order Details</Text>
 
               {selectedOrder && (
-                
+
                 <>
                   <DetailRow label="Order ID" value={`#${selectedOrder.order_id}`} />
                   <DetailRow label="Total Amount" value={`Rs. ${selectedOrder.total_amount}`} />
@@ -171,14 +172,13 @@ const OrderList = ({ location }) => {
                   /> */}
                   <DetailRow
                     label="Distance"
-                    value={`${
-                      Number(Number(selectedOrder.farest_restaurent?.distance_from_me) +
+                    value={`${Number(Number(selectedOrder.farest_restaurent?.distance_from_me) +
                       Number(selectedOrder.farest_restaurent?.distance)).toFixed(2)
-                    } K.M.`}
+                      } K.M.`}
                   />
                   <DetailRow label="Payment Mode" value={selectedOrder.payment_mode} />
                   <DetailRow label="Payment Status" value={selectedOrder.payment_status} />
-                  
+
                   {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 && (
                     <>
                       <Text style={[styles.modalTitle, { fontSize: 16, marginTop: 12 }]}>
@@ -214,7 +214,7 @@ const OrderList = ({ location }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modalBtn, styles.acceptButton]}
+                style={[styles.modalBtn, styles.acceptButton]}Top
                 onPress={() => handleAccept(selectedOrder?.id)}
               >
                 <Text style={styles.actionText}>Accept</Text>
@@ -223,7 +223,48 @@ const OrderList = ({ location }) => {
           </View>
         </View>
       </Modal>
-    </>
+
+      {/* <Modal
+        visible={visible}
+        transparent
+        animationType="fade">
+
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+
+            <Text style={[styles.title,{textAlign:'center'}]}>
+              Confirm Order
+            </Text>
+
+            <Text style={[styles.message,{textAlign:'center'}]}>
+              Are you sure you want to accept
+              order ?
+            </Text>
+
+            <View style={styles.buttonRow}>
+
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setVisible(false)}>
+                <Text style={styles.cancelText}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.confirmBtn}
+                onPress={handleAccept(selectedOrderId)}>
+                <Text style={styles.confirmText}>
+                  Accept
+                </Text>
+              </TouchableOpacity>
+
+            </View>
+
+          </View>
+        </View>
+      </Modal> */}
+    </View>
   );
 };
 
@@ -242,7 +283,7 @@ export default OrderList;
 const styles = StyleSheet.create({
   listContent: { paddingTop: 10 },
 
-   orderCard: {
+  orderCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 10,
@@ -260,7 +301,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
- bottomRow: {
+  bottomRow: {
     justifyContent: 'space-between',
     borderLeftWidth: 2,
     borderStyle: 'dashed',
@@ -278,6 +319,17 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 8,
+  },
+
+  acceptButtonTop: {
+    backgroundColor: '#1E40AF',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    width:100,
+    position:'absolute',zIndex:1,
+    top:10,
+    right:10
   },
 
   actionText: {
@@ -354,5 +406,80 @@ const styles = StyleSheet.create({
 
   mapBtn: {
     backgroundColor: '#16A34A',
+  },
+
+
+
+
+
+
+
+
+
+  // ==================================
+  acceptBtn: {
+    backgroundColor: '#000',
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+
+  modalContainer: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+  },
+
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+
+  message: {
+    fontSize: 15,
+    color: '#555',
+    lineHeight: 22,
+  },
+
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 25,
+  },
+
+  cancelBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginRight: 10,
+    backgroundColor:'#ccc',
+    borderRadius: 8,
+  },
+
+  confirmBtn: {
+    backgroundColor: '#1E40AF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+
+  cancelText: {
+    color: '#555',
+    fontWeight: '600',
+  },
+
+  confirmText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });
