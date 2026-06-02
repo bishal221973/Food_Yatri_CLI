@@ -171,8 +171,6 @@ const AcceptedOrders = ({ location }) => {
                             >
                                 <Text style={styles.actionText}>Map</Text>
                             </TouchableOpacity>
-
-                            
                         </View>
                     </View>
                 </View>
