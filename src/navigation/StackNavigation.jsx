@@ -6,7 +6,7 @@ import Signup from '../screen/Signup'
 import TabNavigation from './TabNavigation'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-
+import QrScanner from "../screen/QrScanner"
 const Stack = createNativeStackNavigator();
 
 const StackNavigation = () => {
@@ -17,6 +17,7 @@ const StackNavigation = () => {
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Signup" component={Signup} />
+        <Stack.Screen name="QrScanners" component={QrScanner} />
 
         <Stack.Screen name="Home" component={TabNavigation} />
       </Stack.Navigator>

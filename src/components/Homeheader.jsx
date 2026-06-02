@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import api from '../../utils/axiosUtils'
+import Scanner from "./Scanner"
 // const zones = [
 //     'Zone A',
 //     'Zone B',
@@ -77,9 +78,6 @@ const Homeheader = ({ navigation }) => {
 
                 {/* RIGHT SIDE */}
                 <TouchableOpacity style={styles.sosBtn} onPress={() => navigation.navigate('SOS')}>
-                    {/* <Icon name="warning" size={18} color="#fff" />
-          <Text style={styles.sosText}>SOS</Text> */}
-                    {/* <View style={{ height: 35, width: 35 }}></View> */}
                     <Image source={require('../../assets/images/sos.png')} style={{ height: 35, width: 35 }} />
                 </TouchableOpacity>
             </View>
@@ -101,10 +99,8 @@ const Homeheader = ({ navigation }) => {
                 </View>
 
                 {/* RIGHT SIDE */}
-                <Image
-                    source={require('../../assets/images/scanner.png')}
-                    style={styles.avatar}
-                />
+                <Scanner/>
+                
             </View>
 
             {/* =========================
