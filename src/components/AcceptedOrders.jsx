@@ -25,7 +25,7 @@ const AcceptedOrders = ({ location }) => {
     const fetchNearbyOrders = async () => {
         // Alert.alert(location?.lat.toString())
         try {
-            const response = await api.get(`/rider/accepted-orders`);
+            const response = await api.get(`/rider/accepted-orders?lat=${location.lat}&lng=${location.lng}`);
 
             setOrders(response.data);
         } catch (error) {

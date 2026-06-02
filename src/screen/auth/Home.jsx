@@ -5,6 +5,7 @@ import {
   PermissionsAndroid,
   Platform,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 
 import React, { useEffect, useState } from 'react';
@@ -50,7 +51,7 @@ const Home = ({ navigation }) => {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-
+        // Alert.alert(JSON.stringify(currentLocation))
         setLocation(currentLocation);
       },
       error => {
@@ -128,11 +129,11 @@ const Home = ({ navigation }) => {
                 25 Orders
               </Text>
             </View>
-
+              {/* <Text>{JSON.stringify(location)}</Text> */}
             <OrderList location={location} />
           </>
         ) : (
-          <AcceptedOrders />
+          <AcceptedOrders location={location}/>
         )}
       </View>
     </View>
