@@ -39,7 +39,50 @@ const AcceptedOrders = ({ location }) => {
 
     // Open Google Maps (Driving mode)
 
+    // const openGoogleMaps = (order) => {
+    //     const riderLat = location?.lat;
+    //     const riderLng = location?.lng;
 
+    //     const restLat = order?.farest_restaurent?.restaurent_lat;
+    //     const restLng = order?.farest_restaurent?.restaurent_lng;
+
+    //     if (!riderLat || !riderLng || !restLat || !restLng) {
+    //         Alert.alert('Location not available');
+    //         return;
+    //     }
+
+    //     const url = `https://www.google.com/maps/dir/?api=1&origin=${riderLat},${riderLng}&destination=${restLat},${restLng}&travelmode=driving&dir_action=navigate`;
+
+    //     Linking.openURL(url);
+    // };
+
+    const openGoogleMaps = (order) => {
+        const riderLat = location?.lat;
+        const riderLng = location?.lng;
+
+        const customerLat = order?.current_lat;
+        const customerLng = order?.current_lng;
+
+        const restaurants = order?.restaurants || [];
+
+        if (!riderLat || !riderLng || !customerLat || !customerLng) {
+            Alert.alert('Location not available');
+            return;
+        }
+
+        // All restaurants become waypoints
+        const waypoints = restaurants
+            .map((r) => `${r.lat},${r.lng}`)
+            .join('|');
+
+        // Alert.alert(JSON.stringify(order.restaurants));
+
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${riderLat},${riderLng}&destination=${customerLat},${customerLng}&waypoints=${encodeURIComponent(
+            waypoints
+        )}&travelmode=driving`;
+
+        Linking.openURL(url);
+    };
 
     // Render order card
     const renderOrder = ({ item }) => (

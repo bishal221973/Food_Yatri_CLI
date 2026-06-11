@@ -27,7 +27,7 @@ const OrderList = ({ location }) => {
   // Accept order
   const handleAccept = async (orderId) => {
     // Alert.alert('Order Accepted', `You accepted order #${orderId}`);
-    const response=await api.put(`/rider/accept-order/${orderId}`);
+    const response = await api.put(`/rider/accept-order/${orderId}`);
     setVisible(false);
     fetchNearbyOrders();
     // setOrders((prev) => prev.filter((order) => order.id !== orderId));
@@ -53,25 +53,50 @@ const OrderList = ({ location }) => {
   }, [location?.lat, location?.lng]);
 
   // Open Google Maps (Driving mode)
+  // const openGoogleMaps = (order) => {
+  //   const riderLat = location?.lat;
+  //   const riderLng = location?.lng;
+
+  //   const restLat = order?.farest_restaurent?.restaurent_lat;
+  //   const restLng = order?.farest_restaurent?.restaurent_lng;
+
+  //   if (!riderLat || !riderLng || !restLat || !restLng) {
+  //     Alert.alert('Location not available');
+  //     return;
+  //   }
+
+  //   const url = `https://www.google.com/maps/dir/?api=1&origin=${riderLat},${riderLng}&destination=${restLat},${restLng}&travelmode=driving&dir_action=navigate`;
+
+  //   Linking.openURL(url);
+  // };
+
   const openGoogleMaps = (order) => {
-    const riderLat = location?.lat;
-    const riderLng = location?.lng;
-
-    // const restLat = order?.current_lat;
-    // const restLng = order?.current_lng;
-
-    const restLat = order?.farest_restaurent?.restaurent_lat;
-    const restLng = order?.farest_restaurent?.restaurent_lng;
-
-    if (!riderLat || !riderLng || !restLat || !restLng) {
-      Alert.alert('Location not available');
-      return;
-    }
-
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${riderLat},${riderLng}&destination=${restLat},${restLng}&travelmode=driving`;
-
-    Linking.openURL(url);
-  };
+          const riderLat = location?.lat;
+          const riderLng = location?.lng;
+  
+          const customerLat = order?.current_lat;
+          const customerLng = order?.current_lng;
+  
+          const restaurants = order?.restaurants || [];
+  
+          if (!riderLat || !riderLng || !customerLat || !customerLng) {
+              Alert.alert('Location not available');
+              return;
+          }
+  
+          // All restaurants become waypoints
+          const waypoints = restaurants
+              .map((r) => `${r.lat},${r.lng}`)
+              .join('|');
+  
+          // Alert.alert(JSON.stringify(order.restaurants));
+  
+          const url = `https://www.google.com/maps/dir/?api=1&origin=${riderLat},${riderLng}&destination=${customerLat},${customerLng}&waypoints=${encodeURIComponent(
+              waypoints
+          )}&travelmode=driving`;
+  
+          Linking.openURL(url);
+      };
 
   const getLocationName = async (lat, lng) => {
     try {
@@ -97,7 +122,7 @@ const OrderList = ({ location }) => {
   // Render order card
   const renderOrder = ({ item }) => (
     <>
-      
+
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => setSelectedOrder(item)}
@@ -131,7 +156,7 @@ const OrderList = ({ location }) => {
   );
 
   return (
-    <View styles={{position:'relative'}}>
+    <View styles={{ position: 'relative' }}>
       {/* Order List */}
       <FlatList
         data={orders}
@@ -214,7 +239,7 @@ const OrderList = ({ location }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modalBtn, styles.acceptButton]}Top
+                style={[styles.modalBtn, styles.acceptButton]} Top
                 onPress={() => handleAccept(selectedOrder?.id)}
               >
                 <Text style={styles.actionText}>Accept</Text>
@@ -326,10 +351,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 8,
-    width:100,
-    position:'absolute',zIndex:1,
-    top:10,
-    right:10
+    width: 100,
+    position: 'absolute', zIndex: 1,
+    top: 10,
+    right: 10
   },
 
   actionText: {
@@ -462,7 +487,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     marginRight: 10,
-    backgroundColor:'#ccc',
+    backgroundColor: '#ccc',
     borderRadius: 8,
   },
 
