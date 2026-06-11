@@ -74,7 +74,7 @@ const Home = ({ navigation }) => {
       <Homeheader navigation={navigation} />
 
       <View style={{ paddingHorizontal: 10 }}>
-
+        <AcceptedOrders location={location} />
         {/* Tabs */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -91,8 +91,14 @@ const Home = ({ navigation }) => {
               Available
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity style={[
+            styles.tabButton,
+            activeTab === 'accepted' && styles.activeTab,
+          ]}>
+            <Text></Text>
+          </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[
               styles.tabButton,
               activeTab === 'accepted' && styles.activeTab,
@@ -105,7 +111,7 @@ const Home = ({ navigation }) => {
               ]}>
               Accepted
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Header */}
@@ -129,11 +135,11 @@ const Home = ({ navigation }) => {
                 25 Orders
               </Text>
             </View>
-              {/* <Text>{JSON.stringify(location)}</Text> */}
+            {/* <Text>{JSON.stringify(location)}</Text> */}
             <OrderList location={location} />
           </>
         ) : (
-          <AcceptedOrders location={location}/>
+          <AcceptedOrders location={location} />
         )}
       </View>
     </View>
@@ -155,7 +161,7 @@ const styles = StyleSheet.create({
 
   tabButton: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 6,
     alignItems: 'center',
 
   },
@@ -168,6 +174,7 @@ const styles = StyleSheet.create({
 
   tabText: {
     color: '#000',
+    textAlign:'left',
     fontWeight: '600',
   },
 

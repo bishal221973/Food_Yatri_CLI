@@ -37,25 +37,6 @@ const AcceptedOrders = ({ location }) => {
         fetchNearbyOrders();
     }, []);
 
-    // Open Google Maps (Driving mode)
-
-    // const openGoogleMaps = (order) => {
-    //     const riderLat = location?.lat;
-    //     const riderLng = location?.lng;
-
-    //     const restLat = order?.farest_restaurent?.restaurent_lat;
-    //     const restLng = order?.farest_restaurent?.restaurent_lng;
-
-    //     if (!riderLat || !riderLng || !restLat || !restLng) {
-    //         Alert.alert('Location not available');
-    //         return;
-    //     }
-
-    //     const url = `https://www.google.com/maps/dir/?api=1&origin=${riderLat},${riderLng}&destination=${restLat},${restLng}&travelmode=driving&dir_action=navigate`;
-
-    //     Linking.openURL(url);
-    // };
-
     const openGoogleMaps = (order) => {
         const riderLat = location?.lat;
         const riderLng = location?.lng;
