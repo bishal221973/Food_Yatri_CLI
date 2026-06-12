@@ -65,13 +65,13 @@ const AcceptedOrders = ({ location }) => {
     const handleConfirm = async (item) => {
         try {
             const response = await api.put(
-                `/rider/accept-order-delivered/${item.id}`,
+                `/rider/accept-order-delivered/${item}`,
                 {
-                    orderId: item.id,
+                    orderId: orderId,
                 }
             );
 
-            console.log(response.data);
+            fetchNearbyOrders();
             Alert.alert('Success', 'Order marked as delivered');
         } catch (error) {
             console.log(error);
@@ -203,7 +203,7 @@ const AcceptedOrders = ({ location }) => {
                             onChangeText={setOrderId}
                         />
 
-                        <TouchableOpacity style={styles.button} onPress={handleConfirm(item)}>
+                        <TouchableOpacity style={styles.button} onPress={() => handleConfirm(item.id)}>
                             <Text style={styles.buttonText}>Confirm</Text>
                         </TouchableOpacity>
                     </View>
@@ -212,6 +212,9 @@ const AcceptedOrders = ({ location }) => {
         </View>
     );
 
+    if (!orders || orders.length === 0) {
+        return <View  />;
+    }
     return (
         <View style={{ marginTop: 20 }}>
             <Text style={styles.title}>Active Orders</Text>
