@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -5,20 +6,40 @@ import {
   PermissionsAndroid,
   Platform,
   TouchableOpacity,
-  Alert,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
 
-import React, { useEffect, useState } from 'react';
 import Geolocation from '@react-native-community/geolocation';
 
-import Homeheader from '../../components/Homeheader';
 import OrderList from '../../components/OrderList';
 import AcceptedOrders from '../../components/AcceptedOrders';
-
+import Homeheader from '../../components/Homeheader';
 const Home = ({ navigation }) => {
   const [location, setLocation] = useState(null);
-
   const [activeTab, setActiveTab] = useState('available');
+  const [refreshing, setRefreshing] = useState(false);
+
+  // ================= LOCATION =================
+  const getCurrentLocation = () => {
+    Geolocation.getCurrentPosition(
+      position => {
+        const currentLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setLocation(currentLocation);
+      },
+      error => {
+        console.log('LOCATION ERROR =>', error);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 30000,
+        maximumAge: 1000,
+      }
+    );
+  };
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -28,145 +49,82 @@ const Home = ({ navigation }) => {
           title: 'Location Permission',
           message: 'App needs access to your location',
           buttonPositive: 'OK',
-        },
+        }
       );
 
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Location permission granted');
         getCurrentLocation();
       } else {
-        console.log('Location permission denied');
+        console.log('Permission denied');
       }
     } else {
       getCurrentLocation();
     }
   };
 
-  const getCurrentLocation = () => {
-    Geolocation.getCurrentPosition(
-      position => {
-        console.log('POSITION => ', position);
-
-        const currentLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        // Alert.alert(JSON.stringify(currentLocation))
-        setLocation(currentLocation);
-      },
-      error => {
-        console.log('ERROR => ', error);
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 30000,
-        maximumAge: 1000,
-      },
-    );
+  // ================= PULL TO REFRESH =================
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await requestLocationPermission();
+    setRefreshing(false);
   };
 
   useEffect(() => {
     requestLocationPermission();
   }, []);
 
+  // ================= UI =================
   return (
-    <View style={{ flex: 1 }}>
+    <ScrollView
+      style={{ flex: 1 }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <Homeheader navigation={navigation} />
+      <View style={{ paddingHorizontal: 10, paddingBottom: 20 }}>
 
-      <View style={{ paddingHorizontal: 10 }}>
-        {/* <AcceptedOrders location={location} /> */}
-        {location && (
-          <AcceptedOrders location={location} />
-        )}
-        {/* Tabs */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === 'available' && styles.activeTab,
-            ]}
-            onPress={() => setActiveTab('available')}>
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === 'available' && styles.activeTabText,
-              ]}>
-              Available
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[
-            styles.tabButton,
-            activeTab === 'accepted' && styles.activeTab,
-          ]}>
-            <Text></Text>
-          </TouchableOpacity>
-
-          {/* <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === 'accepted' && styles.activeTab,
-            ]}
-            onPress={() => setActiveTab('accepted')}>
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === 'accepted' && styles.activeTabText,
-              ]}>
-              Accepted
-            </Text>
-          </TouchableOpacity> */}
-        </View>
-
-        {/* Header */}
-
-        {/* Content */}
+        {/* ACCEPTED ORDERS HEADER (optional) */}
+        {location && <AcceptedOrders location={location} />}
+        {/* CONTENT */}
         {activeTab === 'available' ? (
           <>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginTop: 20,
-              }}>
+            <View style={styles.headerRow}>
               <Text style={{ fontWeight: 'bold' }}>
-                {activeTab === 'available'
-                  ? 'Available Orders :'
-                  : 'Accepted Orders :'}
+                Available Orders :
               </Text>
 
               <Text style={{ fontWeight: 'bold' }}>
                 25 Orders
               </Text>
             </View>
-            {/* <Text>{JSON.stringify(location)}</Text> */}
+
             <OrderList location={location} />
           </>
         ) : (
           <AcceptedOrders location={location} />
         )}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 export default Home;
 
+// ================= STYLES =================
 const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: 'row',
     marginTop: 20,
     backgroundColor: '#f1f1f1',
-    // borderRadius: 10,
-    // padding: 5,
     borderBottomWidth: 2,
-    borderColor: "#1E40AF"
+    borderColor: '#1E40AF',
   },
 
   tabButton: {
     flex: 1,
-    paddingVertical: 6,
+    paddingVertical: 10,
     alignItems: 'center',
-
   },
 
   activeTab: {
@@ -177,11 +135,16 @@ const styles = StyleSheet.create({
 
   tabText: {
     color: '#000',
-    textAlign: 'left',
     fontWeight: '600',
   },
 
   activeTabText: {
     color: '#fff',
+  },
+
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
   },
 });
