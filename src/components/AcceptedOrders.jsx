@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -6,27 +6,50 @@ import {
     FlatList,
     TouchableOpacity,
     Alert,
-    Modal,
-    ScrollView,
     Linking,
+    TextInput,
 } from 'react-native';
-// import api from '../../utils/axiosUtils';
 
+import SwipeButton from 'rn-swipe-button';
 import api from '../../utils/axiosUtils';
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 
+/* ================= SWIPE BUTTON (OUTSIDE MAIN COMPONENT) ================= */
+const SwipeOrderButton = ({ item, onSwipe, swipeRef }) => {
+    return (
+        <SwipeButton
+            ref={(ref) => (swipeRef.current[item.id] = ref)}
+            title="SLIDE TO START DELIVERY"
+            titleColor="#000"
+            titleFontSize={13}
+            height={42}
+            thumbIconWidth={42}
+            railBackgroundColor="#fff"
+            railBorderColor="#0F172A"
+            railFillBackgroundColor="#1E40AF"
+            thumbIconBackgroundColor="#1E40AF"
+            thumbIconBorderColor="#1E40AF"
+            borderRadius={14}
+            shouldResetAfterSuccess={false}
+            onSwipeSuccess={(reset) => {
+                onSwipe(item.id, reset);
+            }}
+        />
+    );
+};
+
+/* ================= MAIN COMPONENT ================= */
 const AcceptedOrders = ({ location }) => {
     const [orders, setOrders] = useState([]);
-    const [selectedOrder, setSelectedOrder] = useState(null);
 
-    // Accept order
+    // ✅ IMPORTANT: store refs per item
+    const swipeRefs = useRef({});
 
-
-    // Fetch orders
     const fetchNearbyOrders = async () => {
-        // Alert.alert(location?.lat.toString())
         try {
-            const response = await api.get(`/rider/accepted-orders?lat=${location.lat}&lng=${location.lng}`);
-
+            const response = await api.get(
+                `/rider/accepted-orders?lat=${location?.lat}&lng=${location?.lng}`
+            );
             setOrders(response.data);
         } catch (error) {
             console.log(error);
@@ -35,8 +58,27 @@ const AcceptedOrders = ({ location }) => {
 
     useEffect(() => {
         fetchNearbyOrders();
-    }, []);
+    }, [location]);
 
+
+    const [orderId, setOrderId] = useState('');
+    const handleConfirm = async (item) => {
+        try {
+            const response = await api.put(
+                `/rider/accept-order-delivered/${item.id}`,
+                {
+                    orderId: item.id,
+                }
+            );
+
+            console.log(response.data);
+            Alert.alert('Success', 'Order marked as delivered');
+        } catch (error) {
+            console.log(error);
+            Alert.alert('Error', 'Something went wrong');
+        }
+    };
+    /* ================= GOOGLE MAPS ================= */
     const openGoogleMaps = (order) => {
         const riderLat = location?.lat;
         const riderLng = location?.lng;
@@ -44,19 +86,16 @@ const AcceptedOrders = ({ location }) => {
         const customerLat = order?.current_lat;
         const customerLng = order?.current_lng;
 
-        const restaurants = order?.restaurants || [];
-
         if (!riderLat || !riderLng || !customerLat || !customerLng) {
             Alert.alert('Location not available');
             return;
         }
 
-        // All restaurants become waypoints
+        const restaurants = order?.restaurants || [];
+
         const waypoints = restaurants
             .map((r) => `${r.lat},${r.lng}`)
             .join('|');
-
-        // Alert.alert(JSON.stringify(order.restaurants));
 
         const url = `https://www.google.com/maps/dir/?api=1&origin=${riderLat},${riderLng}&destination=${customerLat},${customerLng}&waypoints=${encodeURIComponent(
             waypoints
@@ -65,270 +104,224 @@ const AcceptedOrders = ({ location }) => {
         Linking.openURL(url);
     };
 
-    // Render order card
+    /* ================= CONFIRM DELIVERY ================= */
+    const markOutForDelivery = (orderId, reset) => {
+        Alert.alert(
+            'Confirm Delivery',
+            'Are you sure you want to start delivery?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                    onPress: () => {
+                        swipeRefs.current[orderId]?.reset?.();
+                    },
+                },
+                {
+                    text: 'Yes',
+                    onPress: async () => {
+                        try {
+                            await api.put(
+                                `/rider/accept-order-out-for-delivery/${orderId}`
+                            );
+
+                            Alert.alert('Success', 'Order updated');
+                            fetchNearbyOrders();
+                        } catch (error) {
+                            Alert.alert('Error', 'Failed to update status');
+
+                            swipeRefs.current[orderId]?.reset?.();
+                            // reset?.();
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+
+    /* ================= RENDER ================= */
     const renderOrder = ({ item }) => (
-
-        <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setSelectedOrder(item)}
-            style={styles.orderCard}
-        >
-            <View style={styles.topRow}>
-                <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-                    <Text style={styles.price}>Rs. {item.total_amount}</Text>
-                    <Text style={{ fontSize: 12 }}>
-                        (EST.{' '}
-                        {Number(Number(item.farest_restaurent?.distance_from_me) +
-                            Number(item.farest_restaurent?.distance)).toFixed(2)}{' '}
-                        K.M.)
-                    </Text>
+        <View style={styles.card}>
+            <View style={styles.header}>
+                <View style={styles.iconBox}>
+                    <FontAwesome6 name="bag-shopping" size={18} color="#fff" />
                 </View>
-                <View style={styles.userInfo}>
-                    {
-                        item?.available_for_delevery == 'Pending' ? (
 
-                            <Text style={{ color: '#1E40AF', fontWeight: 'bold' }}>{item?.available_for_delevery}</Text>
+                <View style={styles.headerRow}>
+                    <View style={styles.leftBox}>
+                        <Text style={styles.smallText}>Deliver To</Text>
+                        <Text style={styles.boldText}>
+                            {item.receiver_name}
+                        </Text>
+                    </View>
 
-                        ) : (
-
-                            <Text style={{ color: 'green', fontWeight: 'bold' }}>{item?.available_for_delevery}</Text>
-
-                        )
-                    }
-
+                    <View style={styles.rightBox}>
+                        <Text style={[styles.smallText, { textAlign: 'right' }]}>
+                            Distance
+                        </Text>
+                        <Text style={[styles.boldText, { textAlign: 'right' }]}>
+                            {Number(
+                                Number(item.farest_restaurent?.distance_from_me || 0) +
+                                Number(item.farest_restaurent?.distance || 0)
+                            ).toFixed(1)} km
+                        </Text>
+                    </View>
                 </View>
             </View>
 
-            <View style={styles.bottomRow}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <View style={{ height: 10, width: 10, backgroundColor: 'red', borderRadius: 10 }} />
-                    <Text>{item?.receiver_name}</Text>
+            <View style={styles.body}>
+                <View style={styles.rowBetween}>
+                    <View style={styles.row}>
+                        <FontAwesome6 name="phone" size={16} color="#1E40AF" />
+                        <Text style={{ marginLeft: 8 }}>
+                            {item?.receiver_phone}
+                        </Text>
+                    </View>
+
+                    <TouchableOpacity onPress={() => openGoogleMaps(item)}>
+                        <FontAwesome6 name="map" size={18} color="#1E40AF" />
+                    </TouchableOpacity>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <View style={{ height: 10, width: 10, backgroundColor: 'green', borderRadius: 10 }} />
-                    <Text>{item.farest_restaurent?.restaurent_name}</Text>
-                </View>
+                {item.available_for_delevery != 'Out for delivery' ? (
+
+                    <View style={{ marginTop: 12 }}>
+                        <SwipeOrderButton
+                            item={item}
+                            onSwipe={markOutForDelivery}
+                            swipeRef={swipeRefs}
+                        />
+                    </View>
+                ) : (
+                    <View style={styles.row1}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter Order ID"
+                            placeholderTextColor="#9CA3AF"
+                            keyboardType="numeric"
+                            value={orderId}
+                            onChangeText={setOrderId}
+                        />
+
+                        <TouchableOpacity style={styles.button} onPress={handleConfirm(item)}>
+                            <Text style={styles.buttonText}>Confirm</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
-            {/* <Text>Called</Text> */}
-        </TouchableOpacity>
+        </View>
     );
 
     return (
-        <>
-            {/* Order List */}
+        <View style={{ marginTop: 20 }}>
+            <Text style={styles.title}>Active Orders</Text>
+
             <FlatList
                 data={orders}
                 keyExtractor={(item) => item.id?.toString()}
                 renderItem={renderOrder}
-                contentContainerStyle={styles.listContent}
-                ListEmptyComponent={
-                    <Text style={styles.noOrdersText}>No orders available.</Text>
-                }
+                contentContainerStyle={{ paddingBottom: 40 }}
             />
-
-            {/* Modal */}
-            <Modal
-                visible={!!selectedOrder}
-                animationType="fade"
-                transparent
-                onRequestClose={() => setSelectedOrder(null)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <ScrollView>
-                            <Text style={styles.modalTitle}>Order Details</Text>
-
-                            {selectedOrder && (
-
-                                <>
-                                    <DetailRow label="Order ID" value={`#${selectedOrder.order_id}`} />
-                                    <DetailRow label="Total Amount" value={`Rs. ${selectedOrder.total_amount}`} />
-                                    <DetailRow label="Customer" value={selectedOrder?.receiver_name} />
-                                    <DetailRow label="Phone" value={selectedOrder?.receiver_phone} />
-                                    <DetailRow
-                                        label="Restaurant"
-                                        value={selectedOrder.farest_restaurent?.restaurent_name}
-                                    />
-                                    {/* <DetailRow
-                    label="Restaurant Address"
-                    value={selectedOrder.farest_restaurent?.restaurent_address}
-                  /> */}
-                                    <DetailRow
-                                        label="Distance"
-                                        value={`${Number(Number(selectedOrder.farest_restaurent?.distance_from_me) +
-                                            Number(selectedOrder.farest_restaurent?.distance)).toFixed(2)
-                                            } K.M.`}
-                                    />
-                                    <DetailRow label="Payment Mode" value={selectedOrder.payment_mode} />
-                                    <DetailRow label="Payment Status" value={selectedOrder.payment_status} />
-
-                                    {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 && (
-                                        <>
-                                            <Text style={[styles.modalTitle, { fontSize: 16, marginTop: 12 }]}>
-                                                Items
-                                            </Text>
-                                            {selectedOrder.items.map((it, idx) => (
-                                                <DetailRow
-                                                    key={idx}
-                                                    label={`${it.quantity || 1} x ${it.name}`}
-                                                    value={`Rs. ${it.price}`}
-                                                />
-                                            ))}
-                                        </>
-                                    )}
-                                </>
-                            )}
-                        </ScrollView>
-
-                        {/* Bottom Buttons */}
-                        <View style={styles.modalActions}>
-                            <TouchableOpacity
-                                style={[styles.modalBtn, styles.closeBtn]}
-                                onPress={() => setSelectedOrder(null)}
-                            >
-                                <Text style={styles.actionText}>Close</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[styles.modalBtn, styles.mapBtn]}
-                                onPress={() => openGoogleMaps(selectedOrder)}
-                            >
-                                <Text style={styles.actionText}>Map</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-        </>
+        </View>
     );
 };
-
-// Detail row
-const DetailRow = ({ label, value }) => (
-    <View style={styles.detailRow}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value ?? '-'}</Text>
-    </View>
-);
 
 export default AcceptedOrders;
 
 /* ================= STYLES ================= */
-
 const styles = StyleSheet.create({
-    listContent: { paddingTop: 10 },
-
-    orderCard: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 10,
-        marginBottom: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-
-    topRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-
-    bottomRow: {
-        justifyContent: 'space-between',
-        borderLeftWidth: 2,
-        borderStyle: 'dashed',
-        borderColor: '#ccc',
-        paddingLeft: 10,
-    },
-
-    price: {
-        fontSize: 16,
+    title: {
         fontWeight: 'bold',
-    },
-
-    acceptButton: {
-        backgroundColor: '#1E40AF',
-        paddingVertical: 6,
-        paddingHorizontal: 14,
-        borderRadius: 8,
-    },
-
-    actionText: {
-        color: '#fff',
-        fontWeight: '600',
-    },
-
-    noOrdersText: {
-        textAlign: 'center',
-        marginTop: 20,
-        color: '#777',
-    },
-
-    /* Modal */
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'flex-end',
-    },
-
-    modalContent: {
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
-        padding: 16,
-        maxHeight: '85%',
-    },
-
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 16,
         marginBottom: 10,
     },
-
-    detailRow: {
+    card: {
+        borderRadius: 16,
+        backgroundColor: '#fff',
+        marginBottom: 12,
+        overflow: 'hidden',
+        elevation: 3,
+    },
+    header: {
+        backgroundColor: '#1E40AF',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+    },
+    iconBox: {
+        height: 40,
+        width: 40,
+        borderRadius: 20,
+        backgroundColor: '#EB5454',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    headerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingVertical: 6,
-        borderBottomWidth: 1,
-        borderColor: '#eee',
-    },
-
-    detailLabel: {
-        color: '#666',
         flex: 1,
     },
-
-    detailValue: {
-        flex: 1,
-        textAlign: 'right',
-        fontWeight: '600',
+    leftBox: {
+        borderRightWidth: 1,
+        borderColor: '#999',
+        paddingRight: 16,
     },
-
-    /* Bottom buttons FIXED */
-    modalActions: {
+    rightBox: {
+        width: '40%',
+    },
+    smallText: {
+        color: '#E5E7EB',
+        fontSize: 11,
+    },
+    boldText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    body: {
+        padding: 16,
+    },
+    row: {
         flexDirection: 'row',
-        gap: 10,
-        paddingTop: 10,
-        borderTopWidth: 1,
-        borderColor: '#eee',
-    },
-
-    modalBtn: {
-        flex: 1,
-        paddingVertical: 12,
-        borderRadius: 8,
         alignItems: 'center',
+    },
+    rowBetween: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    row1: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10, // if RN version doesn't support gap, use marginLeft on button
+        // margin: 16,
+        marginTop: 10
+    },
+
+    input: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        fontSize: 16,
+        backgroundColor: '#F9FAFB',
+    },
+
+    button: {
+        backgroundColor: '#1E40AF',
+        paddingHorizontal: 18,
+        paddingVertical: 12,
+        borderRadius: 12,
         justifyContent: 'center',
+        alignItems: 'center',
     },
 
-    closeBtn: {
-        backgroundColor: '#6B7280',
-    },
-
-    mapBtn: {
-        backgroundColor: '#16A34A',
+    buttonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
     },
 });

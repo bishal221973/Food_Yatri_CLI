@@ -74,7 +74,10 @@ const Home = ({ navigation }) => {
       <Homeheader navigation={navigation} />
 
       <View style={{ paddingHorizontal: 10 }}>
-        <AcceptedOrders location={location} />
+        {/* <AcceptedOrders location={location} /> */}
+        {location && (
+          <AcceptedOrders location={location} />
+        )}
         {/* Tabs */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -174,7 +177,7 @@ const styles = StyleSheet.create({
 
   tabText: {
     color: '#000',
-    textAlign:'left',
+    textAlign: 'left',
     fontWeight: '600',
   },
 
