@@ -2,7 +2,10 @@ import React from 'react'
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 
-const WalletHeader = () => {
+const WalletHeader = ({earnings}) => {
+  const totalEarning = (earnings || []).reduce((sum, item) => {
+  return sum + Number(item.rider_amount || 0);
+}, 0);
   return (
     <View style={styles.headerContainer}>
         <View style={styles.header}>
@@ -15,7 +18,7 @@ const WalletHeader = () => {
       {/* LEFT SIDE */}
       <View>
         <Text style={styles.label}>Available Balance</Text>
-        <Text style={styles.balance}>₹ 2,450.00</Text>
+        <Text style={styles.balance}>Rs. {Number(totalEarning).toFixed(2)}</Text>
         <Text style={[styles.label,{fontSize:10}]}>Instant withdraw available</Text>
       </View>
 

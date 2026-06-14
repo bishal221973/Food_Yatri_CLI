@@ -2,7 +2,7 @@ import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 
-const Walletcard = () => {
+const Walletcard = ({todaysEarning,weeklyEarning,monthlyEarning}) => {
   return (
     <View style={styles.container}>
 
@@ -12,7 +12,7 @@ const Walletcard = () => {
           <Icon name="today-outline" size={18} color="#1E40AF" />
         </View>
         <Text style={styles.title}>Today</Text>
-        <Text style={styles.amount}>₹ 450</Text>
+        <Text style={styles.amount}>Rs. {Number(todaysEarning).toFixed(2)}</Text>
       </View>
 
       {/* THIS WEEK */}
@@ -21,7 +21,7 @@ const Walletcard = () => {
           <Icon name="calendar-outline" size={18} color="#16A34A" />
         </View>
         <Text style={styles.title}>This Week</Text>
-        <Text style={styles.amount}>₹ 2,800</Text>
+        <Text style={styles.amount}>Rs. {Number(weeklyEarning).toFixed(2)}</Text>
       </View>
 
       {/* THIS MONTH */}
@@ -30,7 +30,7 @@ const Walletcard = () => {
           <Icon name="bar-chart-outline" size={18} color="#E11D48" />
         </View>
         <Text style={styles.title}>This Month</Text>
-        <Text style={styles.amount}>₹ 11,500</Text>
+        <Text style={styles.amount}>Rs. {Number(monthlyEarning).toFixed(2)}</Text>
       </View>
 
     </View>
