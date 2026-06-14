@@ -143,6 +143,7 @@ const AcceptedOrders = ({ location }) => {
     /* ================= RENDER ================= */
     const renderOrder = ({ item }) => (
         <View style={styles.card}>
+            {/* <Text>{item?.available_for_delevery}</Text> */}
             <View style={styles.header}>
                 <View style={styles.iconBox}>
                     <FontAwesome6 name="bag-shopping" size={18} color="#fff" />
@@ -183,7 +184,7 @@ const AcceptedOrders = ({ location }) => {
                         <FontAwesome6 name="map" size={18} color="#1E40AF" />
                     </TouchableOpacity>
                 </View>
-                {item.available_for_delevery != 'Out for delivery' ? (
+                {/* {item.available_for_delevery == 'Accepted' ? (
 
                     <View style={{ marginTop: 12 }}>
                         <SwipeOrderButton
@@ -192,7 +193,7 @@ const AcceptedOrders = ({ location }) => {
                             swipeRef={swipeRefs}
                         />
                     </View>
-                ) : (
+                ) : item.available_for_delevery == 'Out For Delivery' (
                     <View style={styles.row1}>
                         <TextInput
                             style={styles.input}
@@ -207,16 +208,44 @@ const AcceptedOrders = ({ location }) => {
                             <Text style={styles.buttonText}>Confirm</Text>
                         </TouchableOpacity>
                     </View>
-                )}
+                )} */}
+
+                {item.available_for_delevery === 'Accepted' ? (
+                    <View style={{ marginTop: 12 }}>
+                        <SwipeOrderButton
+                            item={item}
+                            onSwipe={markOutForDelivery}
+                            swipeRef={swipeRefs}
+                        />
+                    </View>
+                ) : item.available_for_delevery === 'Out for delivery' ? (
+                    <View style={styles.row1}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter Order ID"
+                            placeholderTextColor="#9CA3AF"
+                            keyboardType="numeric"
+                            value={orderId}
+                            onChangeText={setOrderId}
+                        />
+
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={() => handleConfirm(item.id)}
+                        >
+                            <Text style={styles.buttonText}>Confirm</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : null}
             </View>
         </View>
     );
 
     if (!orders || orders.length === 0) {
-        return <View  />;
+        return <View />;
     }
     return (
-        <View style={{ marginTop: 20 }}>
+        <View style={{ marginTop: 20, marginBottom: -40 }}>
             <Text style={styles.title}>Active Orders</Text>
 
             <FlatList

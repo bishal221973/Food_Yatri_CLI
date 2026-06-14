@@ -75,37 +75,31 @@ const Home = ({ navigation }) => {
 
   // ================= UI =================
   return (
-    <ScrollView
-      style={{ flex: 1 }}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
+    <>
       <Homeheader navigation={navigation} />
-      <View style={{ paddingHorizontal: 10, paddingBottom: 20 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <View style={{ paddingHorizontal: 10, paddingBottom: 20 }}>
 
-        {/* ACCEPTED ORDERS HEADER (optional) */}
-        {location && <AcceptedOrders location={location} />}
-        {/* CONTENT */}
-        {activeTab === 'available' ? (
-          <>
-            <View style={styles.headerRow}>
-              <Text style={{ fontWeight: 'bold' }}>
-                Available Orders :
-              </Text>
+          {location && <AcceptedOrders location={location} />}
+          <View style={styles.headerRow}>
+            <Text style={{ fontWeight: 'bold' }}>
+              Available Orders :
+            </Text>
 
-              <Text style={{ fontWeight: 'bold' }}>
-                25 Orders
-              </Text>
-            </View>
+            <Text style={{ fontWeight: 'bold' }}>
+              25 Orders
+            </Text>
+          </View>
 
-            <OrderList location={location} />
-          </>
-        ) : (
-          <AcceptedOrders location={location} />
-        )}
-      </View>
-    </ScrollView>
+          <OrderList location={location} />
+        </View>
+      </ScrollView>
+    </>
   );
 };
 

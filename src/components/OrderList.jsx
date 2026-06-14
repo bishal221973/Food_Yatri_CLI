@@ -10,33 +10,21 @@ import {
   ScrollView,
   Linking,
 } from 'react-native';
-// import api from '../../utils/axiosUtils';
-
 import api from '../../utils/axiosUtils';
-
+import Waypoints from "../components/Waypoints"
 const OrderList = ({ location }) => {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [visible, setVisible] = useState(false);
 
-  const openConfirmModal = orderId => {
-    setSelectedOrderId(orderId?.id);
-    setVisible(true);
-  };
-  // Accept order
   const handleAccept = async (orderId) => {
-    // Alert.alert('Order Accepted', `You accepted order #${orderId}`);
-    const response = await api.put(`/rider/accept-order/${orderId}`);
+   await api.put(`/rider/accept-order/${orderId}`);
     setVisible(false);
     fetchNearbyOrders();
-    // setOrders((prev) => prev.filter((order) => order.id !== orderId));
     setSelectedOrder(null);
   };
 
-  // Fetch orders
   const fetchNearbyOrders = async () => {
-    // Alert.alert(location?.lat.toString())
     try {
       const response = await api.get(`/rider/orders?lat=${location.lat}&lng=${location.lng}`);
 
@@ -52,24 +40,6 @@ const OrderList = ({ location }) => {
     }
   }, [location?.lat, location?.lng]);
 
-  // Open Google Maps (Driving mode)
-  // const openGoogleMaps = (order) => {
-  //   const riderLat = location?.lat;
-  //   const riderLng = location?.lng;
-
-  //   const restLat = order?.farest_restaurent?.restaurent_lat;
-  //   const restLng = order?.farest_restaurent?.restaurent_lng;
-
-  //   if (!riderLat || !riderLng || !restLat || !restLng) {
-  //     Alert.alert('Location not available');
-  //     return;
-  //   }
-
-  //   const url = `https://www.google.com/maps/dir/?api=1&origin=${riderLat},${riderLng}&destination=${restLat},${restLng}&travelmode=driving&dir_action=navigate`;
-
-  //   Linking.openURL(url);
-  // };
-
   const openGoogleMaps = (order) => {
           const riderLat = location?.lat;
           const riderLng = location?.lng;
@@ -84,13 +54,10 @@ const OrderList = ({ location }) => {
               return;
           }
   
-          // All restaurants become waypoints
           const waypoints = restaurants
               .map((r) => `${r.lat},${r.lng}`)
               .join('|');
-  
-          // Alert.alert(JSON.stringify(order.restaurants));
-  
+    
           const url = `https://www.google.com/maps/dir/?api=1&origin=${riderLat},${riderLng}&destination=${customerLat},${customerLng}&waypoints=${encodeURIComponent(
               waypoints
           )}&travelmode=driving`;
@@ -98,28 +65,7 @@ const OrderList = ({ location }) => {
           Linking.openURL(url);
       };
 
-  const getLocationName = async (lat, lng) => {
-    try {
-      const apiKey = "YOUR_GOOGLE_MAPS_API_KEY";
-
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
-      );
-
-      const data = await response.json();
-
-      if (data.status === "OK") {
-        return data.results[0].formatted_address;
-      } else {
-        console.log("Geocode error:", data.status);
-        return null;
-      }
-    } catch (error) {
-      console.log("Error:", error);
-      return null;
-    }
-  };
-  // Render order card
+  
   const renderOrder = ({ item }) => (
     <>
 
@@ -151,13 +97,14 @@ const OrderList = ({ location }) => {
             <Text>{item.farest_restaurent?.restaurent_name}</Text>
           </View>
         </View>
+      <Waypoints restaurants={item?.restaurants}/>
       </TouchableOpacity>
+
     </>
   );
 
   return (
     <View styles={{ position: 'relative' }}>
-      {/* Order List */}
       <FlatList
         data={orders}
         keyExtractor={(item) => item.id?.toString()}
@@ -168,7 +115,6 @@ const OrderList = ({ location }) => {
         }
       />
 
-      {/* Modal */}
       <Modal
         visible={!!selectedOrder}
         animationType="fade"
@@ -177,7 +123,7 @@ const OrderList = ({ location }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <ScrollView>
+            {/* <ScrollView> */}
               <Text style={styles.modalTitle}>Order Details</Text>
 
               {selectedOrder && (
@@ -191,10 +137,6 @@ const OrderList = ({ location }) => {
                     label="Restaurant"
                     value={selectedOrder.farest_restaurent?.restaurent_name}
                   />
-                  {/* <DetailRow
-                    label="Restaurant Address"
-                    value={selectedOrder.farest_restaurent?.restaurent_address}
-                  /> */}
                   <DetailRow
                     label="Distance"
                     value={`${Number(Number(selectedOrder.farest_restaurent?.distance_from_me) +
@@ -220,9 +162,8 @@ const OrderList = ({ location }) => {
                   )}
                 </>
               )}
-            </ScrollView>
+            {/* </ScrollView> */}
 
-            {/* Bottom Buttons */}
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalBtn, styles.closeBtn]}
@@ -249,51 +190,11 @@ const OrderList = ({ location }) => {
         </View>
       </Modal>
 
-      {/* <Modal
-        visible={visible}
-        transparent
-        animationType="fade">
-
-        <View style={styles.overlay}>
-          <View style={styles.modalContainer}>
-
-            <Text style={[styles.title,{textAlign:'center'}]}>
-              Confirm Order
-            </Text>
-
-            <Text style={[styles.message,{textAlign:'center'}]}>
-              Are you sure you want to accept
-              order ?
-            </Text>
-
-            <View style={styles.buttonRow}>
-
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setVisible(false)}>
-                <Text style={styles.cancelText}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.confirmBtn}
-                onPress={handleAccept(selectedOrderId)}>
-                <Text style={styles.confirmText}>
-                  Accept
-                </Text>
-              </TouchableOpacity>
-
-            </View>
-
-          </View>
-        </View>
-      </Modal> */}
+      
     </View>
   );
 };
 
-// Detail row
 const DetailRow = ({ label, value }) => (
   <View style={styles.detailRow}>
     <Text style={styles.detailLabel}>{label}</Text>
