@@ -9,7 +9,7 @@ import Notification from "../screen/auth/Notification"
 import SOS from "../screen/auth/SOS"
 import Gigs from "../screen/auth/Gigs"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-
+import Profile from "../screen/auth/Profile"
 const Tab = createBottomTabNavigator()
 const Stack = createNativeStackNavigator()
 
@@ -26,6 +26,7 @@ const Tabs = () => {
           else if (route.name === 'Wallet') iconName = focused ? 'wallet' : 'wallet-outline'
           else if (route.name === 'Gigs') iconName = focused ? 'fast-food' : 'fast-food-outline'
           else if (route.name === 'Update') iconName = focused ? 'notifications' : 'notifications-outline'
+          else if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline'
           return <Icon name={iconName} size={size} color={color} />
         },
         tabBarActiveTintColor: '#1E40AF',
@@ -39,7 +40,8 @@ const Tabs = () => {
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Wallet" component={Wallet} />
       <Tab.Screen name="Gigs" component={Gigs} />
-      <Tab.Screen name="Update" component={Notification} />
+      <Tab.Screen name="Profile" component={Profile} />
+      {/* <Tab.Screen name="Update" component={Notification} /> */}
       {/* Do NOT include SOS here */}
     </Tab.Navigator>
   )
